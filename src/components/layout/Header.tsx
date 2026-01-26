@@ -10,10 +10,10 @@ import { cn } from '@/lib/utils';
 import logo from '@/assets/logo-main.webp';
 
 const navigation = [
-  { name: 'BEATS', href: '/beats' },
   { name: 'SAMPLE KITS', href: '/sample-kits' },
   { name: 'DRUM KITS', href: '/drum-kits' },
   { name: 'MIDI KITS', href: '/midi-kits' },
+  { name: 'BEATS', href: '/beats' },
   { name: 'MERCH', href: '/merch' },
   { name: 'APPLY', href: '/apply' },
   { name: 'SOCIETY', href: '/society' },
