@@ -60,23 +60,28 @@ serve(async (req) => {
       });
     }
 
-    // Check for lifetime access via discount code
-    const { data: lifetimeAccess } = await supabaseClient
-      .from('lifetime_access_codes')
-      .select('*')
-      .eq('email', user.email)
+    // Check for lifetime access via discount code redemption
+    const { data: codeRedemption } = await supabaseClient
+      .from('code_redemptions')
+      .select(`
+        *,
+        discount_codes!inner(*)
+      `)
+      .eq('user_email', user.email)
       .eq('is_revoked', false)
+      .eq('discount_codes.grants_pantheon_lifetime', true)
+      .eq('discount_codes.is_active', true)
       .maybeSingle();
 
-    if (lifetimeAccess) {
-      logStep("Lifetime access code found", { email: user.email, code: lifetimeAccess.code_used });
+    if (codeRedemption) {
+      logStep("Lifetime access code redemption found", { email: user.email });
       return new Response(JSON.stringify({
         subscribed: true,
         product_id: "lifetime_code",
         plan: "lifetime",
         subscription_end: null,
         is_lifetime_code: true,
-        purchase_verified: lifetimeAccess.purchase_verified,
+        purchase_verified: codeRedemption.purchase_verified,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

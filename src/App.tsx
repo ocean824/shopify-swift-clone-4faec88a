@@ -20,6 +20,7 @@ import SocietyPage from "./pages/SocietyPage";
 import SubscribePage from "./pages/SubscribePage";
 import AuthPage from "./pages/AuthPage";
 import MembersPage from "./pages/MembersPage";
+import AdminCodesPage from "./pages/AdminCodesPage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 import { AudioProvider } from "./components/audio/AudioPlayer";
@@ -51,6 +52,7 @@ function AppContent() {
       <Route path="/subscribe" element={<SubscribePage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/members" element={<MembersPage />} />
+      <Route path="/admin/codes" element={<AdminCodesPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
