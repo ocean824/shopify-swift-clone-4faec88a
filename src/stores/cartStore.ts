@@ -12,6 +12,7 @@ import {
   ShopifyProduct,
   ShopifyPrice,
 } from '@/lib/shopify';
+import { calculateBundleDiscount } from '@/data/sampleKits';
 
 export interface CartItem {
   lineId: string | null;
@@ -45,6 +46,9 @@ interface CartStore {
   // Computed
   totalItems: () => number;
   subtotal: () => number;
+  bundleDiscount: () => number;
+  discountedSubtotal: () => number;
+  bundleDiscountPercent: () => number;
 }
 
 async function createShopifyCart(item: CartItem): Promise<{ 
@@ -284,6 +288,21 @@ export const useCartStore = create<CartStore>()(
           (total, item) => total + parseFloat(item.price.amount) * item.quantity,
           0
         );
+      },
+
+      bundleDiscountPercent: () => {
+        const itemCount = get().totalItems();
+        return calculateBundleDiscount(itemCount);
+      },
+
+      bundleDiscount: () => {
+        const subtotal = get().subtotal();
+        const discountPercent = get().bundleDiscountPercent();
+        return subtotal * discountPercent;
+      },
+
+      discountedSubtotal: () => {
+        return get().subtotal() - get().bundleDiscount();
       },
     }),
     {
