@@ -17,6 +17,9 @@ import theFeels from '@/assets/products/the-feels.jpg';
 import floodSznVol2 from '@/assets/products/flood-szn-vol-2.png';
 import floodSznVol1 from '@/assets/products/flood-szn-vol-1.jpg';
 
+// Shopify CDN base URL for audio previews
+const AUDIO_CDN_BASE = 'https://cdn.shopify.com/s/files/1/0797/6189/9773/files';
+
 export interface SampleKit {
   id: string;
   title: string;
@@ -52,7 +55,10 @@ export const sampleKits: SampleKit[] = [
     category: 'bundle',
     description: 'Get EVERY Sample Society kit in one massive bundle. Includes all sample packs, drum kits, MIDI files, and stems. Over 2,000+ sounds at an unbeatable price. Limited time offer.',
     artistsLike: ['Travis Scott', 'Don Toliver', 'Drake', 'Metro Boomin'],
-    // Draft status - no Shopify IDs yet
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/all-kits-bundle-preview.mp3`,
+    // Draft status - using All Kits Bundle product
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/47541358330110',
+    shopifyWavProductId: 'gid://shopify/Product/9058722447614',
   },
   {
     id: 'moonlight-drumkit',
@@ -66,6 +72,7 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'Moonlight Drum Kit captures the atmosphere of late nights with crisp modern trap percussion and moody, understated textures. Perfect for melodic trap, R&B-infused trap, and dark late-night production.',
     artistsLike: ['Drake', 'PARTYNEXTDOOR', 'Travis Scott'],
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/moonlight-drumkit-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/47706892239102',
     shopifyWavProductId: 'gid://shopify/Product/9112655134974',
   },
@@ -83,6 +90,7 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'An ethereal collection of lush soundscapes and celestial melodies crafted to awaken pure inspiration. Filled with airy pads, dreamy chords, and soulful textures that channel a divine balance between serenity and power.',
     artistsLike: ['Don Toliver', 'Brent Faiyaz', 'Travis Scott', 'James Blake'],
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/mana-vol-1-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/47446768713982',
     shopifyWavProductId: 'gid://shopify/Product/9027676307710',
     shopifyStemsVariantId: 'gid://shopify/ProductVariant/47485151117566',
@@ -100,7 +108,9 @@ export const sampleKits: SampleKit[] = [
     category: 'midi-kit',
     description: 'A curated collection of 65 smooth, evocative MIDI chord progressions designed to spark instant inspiration across R&B, Trap, and Pop. Perfect for crafting warm chords and modern harmonic textures.',
     artistsLike: ['Future', 'Young Thug', 'Travis Scott', 'SZA', 'Summer Walker'],
-    // Need to fetch variant ID
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/haze-midi-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/47538225217790',
+    shopifyWavProductId: 'gid://shopify/Product/9057652211966',
   },
   {
     id: 'unrequited-love-vol-2',
@@ -113,7 +123,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'The follow-up to our hit sample pack. Emotional, melodic compositions perfect for R&B and melodic hip-hop production. Features piano-driven samples with lush textures.',
     artistsLike: ['Drake', 'SZA', 'Summer Walker'],
-    // Shopify product IDs: 8082816008446 (wavs), 8082816598270 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/unrequited-love-vol-2-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102255247614',
+    shopifyWavProductId: 'gid://shopify/Product/8082816008446',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102256558334',
+    shopifyStemsProductId: 'gid://shopify/Product/8082816598270',
   },
   {
     id: 'unrequited-love-vol-1',
@@ -126,9 +140,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'A collection of emotional, heart-wrenching samples inspired by love and loss. Perfect for creating introspective R&B and melodic trap records.',
     artistsLike: ['Bryson Tiller', 'PartyNextDoor', '6LACK'],
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/unrequited-love-vol-1-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102183026942',
     shopifyWavProductId: 'gid://shopify/Product/8082779734270',
-    // trackouts: 8082802278654
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102227362046',
+    shopifyStemsProductId: 'gid://shopify/Product/8082802278654',
   },
   {
     id: 'vzn-compositions',
@@ -139,7 +155,9 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Visionary compositions featuring futuristic soundscapes and innovative textures. Built for producers who want to push boundaries and create forward-thinking music.',
     artistsLike: ['Travis Scott', 'Kid Cudi', 'Don Toliver'],
-    // Shopify product ID: 8082817941758
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/vzn-compositions-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102259015934',
+    shopifyWavProductId: 'gid://shopify/Product/8082817941758',
   },
   {
     id: 'abstract-minds',
@@ -152,7 +170,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Experimental and abstract sample compositions that defy convention. Features unconventional sounds and unique textures for producers looking to stand out.',
     artistsLike: ['Kanye West', 'Tyler, The Creator', 'Frank Ocean'],
-    // Shopify: 8082819088638 (wavs), 8082819481854 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/abstract-minds-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102261276926',
+    shopifyWavProductId: 'gid://shopify/Product/8082819088638',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102261768446',
+    shopifyStemsProductId: 'gid://shopify/Product/8082819481854',
   },
   {
     id: 'vibrant-darkness',
@@ -165,7 +187,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Dark, atmospheric compositions with rich textures and haunting melodies. Perfect for producers looking to create moody, cinematic beats with a unique edge.',
     artistsLike: ['Travis Scott', 'Don Toliver', 'Metro Boomin'],
-    // Shopify: 8082820792574 (wavs), 8082821153022 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/vibrant-darkness-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102264062206',
+    shopifyWavProductId: 'gid://shopify/Product/8082820792574',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102265045246',
+    shopifyStemsProductId: 'gid://shopify/Product/8082821153022',
   },
   {
     id: 'stained-glass-vol-2',
@@ -178,7 +204,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Colorful, vibrant samples with a unique blend of organic and synthetic textures. The sequel features even more experimental sounds and melodic compositions.',
     artistsLike: ['Pharrell', 'Chad Hugo', 'The Neptunes'],
-    // Shopify: 8082824331518 (wavs), 8082824855806 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/stained-glass-vol-2-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102269239550',
+    shopifyWavProductId: 'gid://shopify/Product/8082824331518',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102270058750',
+    shopifyStemsProductId: 'gid://shopify/Product/8082824855806',
   },
   {
     id: 'stained-glass-vol-1',
@@ -191,7 +221,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'A kaleidoscope of sounds featuring rich, textured samples with vibrant colors and unique character. Perfect for creating standout productions.',
     artistsLike: ['Steve Lacy', 'Tyler, The Creator', 'Tame Impala'],
-    // Shopify: 8082822267134 (wavs), 8082823545086 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/stained-glass-vol-1-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102266650878',
+    shopifyWavProductId: 'gid://shopify/Product/8082822267134',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102268223742',
+    shopifyStemsProductId: 'gid://shopify/Product/8082823545086',
   },
   {
     id: 'vintage-vibes',
@@ -204,7 +238,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Classic, soulful samples with a vintage aesthetic. Features warm analog textures, vinyl crackle, and timeless melodies perfect for boom bap and neo-soul.',
     artistsLike: ['J. Cole', 'Kendrick Lamar', 'Anderson .Paak'],
-    // Shopify: 8082826330366 (wavs), 8082826821886 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/vintage-vibes-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102272483582',
+    shopifyWavProductId: 'gid://shopify/Product/8082826330366',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102273204478',
+    shopifyStemsProductId: 'gid://shopify/Product/8082826821886',
   },
   {
     id: 'gray-area',
@@ -217,7 +255,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Moody, atmospheric samples that exist between light and dark. Features ambient textures and emotional compositions for introspective productions.',
     artistsLike: ['Giveon', 'Daniel Caesar', 'Brent Faiyaz'],
-    // Shopify: 8082828263678 (wavs), 8082828722430 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/grey-area-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102275203326',
+    shopifyWavProductId: 'gid://shopify/Product/8082828263678',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102276186366',
+    shopifyStemsProductId: 'gid://shopify/Product/8082828722430',
   },
   {
     id: 'black-friday',
@@ -230,7 +272,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Hard-hitting, aggressive samples perfect for trap and drill production. Dark, menacing textures with heavy 808-ready compositions.',
     artistsLike: ['Future', '21 Savage', 'Young Thug'],
-    // Shopify: 8082829836542 (wavs), 8082830000382 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/black-friday-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102278021374',
+    shopifyWavProductId: 'gid://shopify/Product/8082829836542',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102278250750',
+    shopifyStemsProductId: 'gid://shopify/Product/8082830000382',
   },
   {
     id: 'the-feels',
@@ -243,7 +289,11 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Emotional, feeling-driven compositions that hit right in the heart. Perfect for creating vulnerable, introspective R&B and hip-hop records.',
     artistsLike: ['Drake', 'The Weeknd', 'Bryson Tiller'],
-    // Shopify: 8082831016190 (wavs), 8082835144958 (trackouts)
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/the-feels-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102279987454',
+    shopifyWavProductId: 'gid://shopify/Product/8082831016190',
+    shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102288507134',
+    shopifyStemsProductId: 'gid://shopify/Product/8082835144958',
   },
   {
     id: 'flood-szn-vol-2',
@@ -254,7 +304,9 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'Premium one-shots and drum sounds for modern trap production. Crisp 808s, punchy kicks, and snappy snares ready to flood your beats.',
     artistsLike: ['Lil Baby', 'Gunna', 'Young Thug'],
-    // Shopify: 8082840977662
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/flood-szn-vol-2-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102299287806',
+    shopifyWavProductId: 'gid://shopify/Product/8082840977662',
   },
   {
     id: 'flood-szn-vol-1',
@@ -265,7 +317,9 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'The original Flood SZN drum kit featuring hard-hitting one-shots that will make your drums stand out. Industry-quality sounds used in major placements.',
     artistsLike: ['Metro Boomin', 'Southside', 'TM88'],
-    // Shopify: 8082839175422
+    audioPreviewUrl: `${AUDIO_CDN_BASE}/flood-szn-vol-1-preview.mp3`,
+    shopifyWavVariantId: 'gid://shopify/ProductVariant/44102296240382',
+    shopifyWavProductId: 'gid://shopify/Product/8082839175422',
   },
 ];
 
