@@ -8,7 +8,7 @@ import logo from '@/assets/logo.gif';
 
 function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: number }) {
   const salePercentage = kit.compareAtPrice 
-    ? Math.round(((kit.compareAtPrice - kit.price) / kit.compareAtPrice) * 100) 
+    ? Math.round(((kit.compareAtPrice - kit.wavPrice) / kit.compareAtPrice) * 100) 
     : 0;
 
   return (
@@ -18,7 +18,7 @@ function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: numbe
       transition={{ duration: 0.3, delay: index * 0.05 }}
       className="group"
     >
-      <Link to={`/product/${kit.handle}`} className="block">
+      <Link to={`/product/${kit.wavHandle}`} className="block">
         <div className="relative aspect-square overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
           <img
             src={kit.image}
@@ -50,9 +50,9 @@ function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: numbe
           </h3>
           <div className="flex items-center justify-center gap-2">
             <span className="text-lg font-bold text-foreground">
-              ${kit.price}
+              ${kit.wavPrice}
             </span>
-            {kit.compareAtPrice && kit.compareAtPrice > kit.price && (
+            {kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice && (
               <span className="text-sm text-muted-foreground line-through">
                 ${kit.compareAtPrice}
               </span>

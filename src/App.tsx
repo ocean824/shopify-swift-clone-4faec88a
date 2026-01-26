@@ -9,6 +9,9 @@ import MerchPage from "./pages/MerchPage";
 import DrumKitsPage from "./pages/DrumKitsPage";
 import MidiKitsPage from "./pages/MidiKitsPage";
 import AllKitsBundlePage from "./pages/AllKitsBundlePage";
+import TermsPage from "./pages/TermsPage";
+import CreditsPage from "./pages/CreditsPage";
+import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 
@@ -25,6 +28,9 @@ function AppContent() {
       <Route path="/drum-kits" element={<DrumKitsPage />} />
       <Route path="/midi-kits" element={<MidiKitsPage />} />
       <Route path="/bundle" element={<AllKitsBundlePage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/credits" element={<CreditsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/resources" element={<Index />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

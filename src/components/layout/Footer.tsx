@@ -11,13 +11,12 @@ const footerLinks = {
   ],
   support: [
     { name: 'Contact', href: '/contact' },
+    { name: 'Credits', href: '/credits' },
     { name: 'FAQ', href: '/faq' },
-    { name: 'Refund Policy', href: '/refund-policy' },
   ],
   legal: [
-    { name: 'Terms of Service', href: '/terms' },
+    { name: 'Terms & License', href: '/terms' },
     { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'License Agreement', href: '/license' },
   ],
 };
 
