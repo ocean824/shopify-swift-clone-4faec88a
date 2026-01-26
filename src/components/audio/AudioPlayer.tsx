@@ -1,4 +1,8 @@
 import { useRef, useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { sampleKits } from '@/data/sampleKits';
+
+// Playlist order - kits with audio previews, sorted by release (array order in sampleKits)
+const getPlaylist = () => sampleKits.filter(kit => kit.audioPreviewUrl);
 
 interface AudioContextType {
   currentlyPlaying: string | null;
@@ -9,6 +13,8 @@ interface AudioContextType {
   progress: number;
   duration: number;
   seek: (percentage: number) => void;
+  playNext: () => void;
+  playPrevious: () => void;
 }
 
 const AudioContext = createContext<AudioContextType | null>(null);
@@ -22,6 +28,46 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   // Single persistent audio element
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const playNext = useCallback(() => {
+    const playlist = getPlaylist();
+    if (!currentlyPlaying) return;
+    
+    const currentIndex = playlist.findIndex(kit => kit.id === currentlyPlaying);
+    const nextIndex = (currentIndex + 1) % playlist.length;
+    const nextKit = playlist[nextIndex];
+    
+    if (nextKit && nextKit.audioPreviewUrl) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.src = nextKit.audioPreviewUrl;
+        audio.play().catch(console.error);
+        setCurrentlyPlaying(nextKit.id);
+        setCurrentUrl(nextKit.audioPreviewUrl);
+        setProgress(0);
+      }
+    }
+  }, [currentlyPlaying]);
+
+  const playPrevious = useCallback(() => {
+    const playlist = getPlaylist();
+    if (!currentlyPlaying) return;
+    
+    const currentIndex = playlist.findIndex(kit => kit.id === currentlyPlaying);
+    const prevIndex = currentIndex <= 0 ? playlist.length - 1 : currentIndex - 1;
+    const prevKit = playlist[prevIndex];
+    
+    if (prevKit && prevKit.audioPreviewUrl) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.src = prevKit.audioPreviewUrl;
+        audio.play().catch(console.error);
+        setCurrentlyPlaying(prevKit.id);
+        setCurrentUrl(prevKit.audioPreviewUrl);
+        setProgress(0);
+      }
+    }
+  }, [currentlyPlaying]);
+
   // Create audio element on mount
   useEffect(() => {
     audioRef.current = new Audio();
@@ -34,27 +80,33 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       setDuration(audio.duration || 0);
     };
     
-    const handleEnded = () => {
-      setCurrentlyPlaying(null);
-      setProgress(0);
-    };
-    
     const handleLoadedMetadata = () => {
       setDuration(audio.duration || 0);
     };
     
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.pause();
       audio.src = '';
     };
   }, []);
+
+  // Handle track ended - play next
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    
+    const handleEnded = () => {
+      playNext();
+    };
+    
+    audio.addEventListener('ended', handleEnded);
+    return () => audio.removeEventListener('ended', handleEnded);
+  }, [playNext]);
 
   const play = useCallback((id: string, url: string) => {
     const audio = audioRef.current;
@@ -111,7 +163,9 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       isPlaying, 
       progress, 
       duration,
-      seek
+      seek,
+      playNext,
+      playPrevious,
     }}>
       {children}
     </AudioContext.Provider>

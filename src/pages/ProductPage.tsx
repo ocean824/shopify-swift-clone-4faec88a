@@ -14,8 +14,7 @@ import { useAudio } from '@/components/audio/AudioPlayer';
 import { useDiscountStore } from '@/stores/discountStore';
 
 // Global Audio Player for Product Page with auto-pause
-function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
-  const playerId = title; // Use title as unique ID for this player
+function WaveformPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
   const { isPlaying, play, progress, duration, seek } = useAudio();
   const [bars] = useState(() => 
     Array.from({ length: 50 }, () => Math.random() * 0.6 + 0.2)
@@ -23,7 +22,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
 
   const togglePlay = () => {
     if (!audioUrl) return;
-    play(playerId, audioUrl);
+    play(kitId, audioUrl);
   };
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -52,7 +51,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
     );
   }
 
-  const playing = isPlaying(playerId);
+  const playing = isPlaying(kitId);
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
@@ -94,12 +93,11 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
 
 // Bundle Item Audio Player with global audio control
 function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
-  const playerId = `bundle-${kitId}`;
   const { isPlaying, play } = useAudio();
 
   const togglePlay = () => {
     if (!audioUrl) return;
-    play(playerId, audioUrl);
+    play(kitId, audioUrl);
   };
 
   if (!audioUrl) {
@@ -110,7 +108,7 @@ function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: strin
     );
   }
 
-  const playing = isPlaying(playerId);
+  const playing = isPlaying(kitId);
 
   return (
     <Button
@@ -504,7 +502,7 @@ export default function ProductPage() {
 
             {/* Audio Waveform Player */}
             <div className="mb-6">
-              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
+              <WaveformPlayer audioUrl={kit.audioPreviewUrl} kitId={kit.id} />
             </div>
 
             {/* Description Section */}
