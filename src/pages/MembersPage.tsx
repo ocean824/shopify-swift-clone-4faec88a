@@ -64,6 +64,13 @@ const MembersPage = () => {
   };
 
   const handleRedownload = async (purchase: Purchase) => {
+    // Direct WeTransfer link for All Kits Bundle
+    if (purchase.productName.toLowerCase().includes('all kits bundle') || 
+        purchase.productName.toLowerCase().includes('all-kits-bundle')) {
+      window.open('https://we.tl/t-dvPWLOJdRp', '_blank');
+      return;
+    }
+
     setResendingId(purchase.id);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
