@@ -37,7 +37,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t border-border bg-background">
+    <footer className="border-t border-border bg-background pb-20">
       {/* Stay Updated Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-lg text-center">
@@ -109,7 +109,7 @@ export function Footer() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+        className="fixed bottom-24 right-6 z-40 h-10 w-10 rounded-full border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
         onClick={scrollToTop}
         aria-label="Back to top"
       >
