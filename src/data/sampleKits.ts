@@ -48,7 +48,7 @@ export const sampleKits: SampleKit[] = [
     title: 'ALL KITS BUNDLE 2025 (LIMITED TIME SALE)',
     image: allKitsBundle,
     wavHandle: 'all-kits-bundle',
-    wavPrice: 99,
+    wavPrice: 199,
     compareAtPrice: 500,
     isOnSale: true,
     isNew: true,
