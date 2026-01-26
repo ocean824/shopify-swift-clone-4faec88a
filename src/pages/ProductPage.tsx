@@ -449,11 +449,10 @@ export default function ProductPage() {
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Left Column - Product Image (large, like reference) */}
+          {/* Left Column - Product Image */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="sticky top-24"
           >
             <div className="aspect-square overflow-hidden rounded-xl border border-border bg-card">
               <img
@@ -462,23 +461,79 @@ export default function ProductPage() {
                 className="h-full w-full object-cover"
               />
             </div>
-            
-            {/* Audio Player below image */}
-            <div className="mt-4">
-              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
-            </div>
           </motion.div>
 
-          {/* Right Column - Product Info & Bundle Builder */}
+          {/* Right Column - Product Info */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col"
           >
-            {/* Add to Cart Button - Primary CTA at top like reference */}
+            {/* Category Label */}
+            <span className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              {kit.category === 'sample-kit' ? 'Sample Kit' : kit.category === 'midi-kit' ? 'MIDI Kit' : 'Drum Kit'}
+            </span>
+
+            {/* Title */}
+            <h1 className="text-2xl md:text-3xl font-bold mb-3">{kit.title}</h1>
+
+            {/* Price with Sale Badge */}
+            <div className="flex items-center gap-3 mb-6">
+              {isOnSale && (
+                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">SALE</Badge>
+              )}
+              <span className="text-2xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
+              {isOnSale && kit.compareAtPrice && (
+                <span className="text-lg text-muted-foreground line-through">${kit.compareAtPrice.toFixed(2)}</span>
+              )}
+            </div>
+
+            {/* Audio Waveform Player */}
+            <div className="mb-6">
+              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
+            </div>
+
+            {/* Description Section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold mb-3">Description</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {kit.description}
+              </p>
+            </div>
+
+            {/* Format Selector */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold mb-3">Format</h3>
+              <div className="flex gap-2">
+                <Badge 
+                  variant={selectedFormat === 'wav' ? 'default' : 'outline'}
+                  className={cn(
+                    "cursor-pointer text-sm px-4 py-1.5",
+                    selectedFormat === 'wav' ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20'
+                  )}
+                  onClick={() => setSelectedFormat('wav')}
+                >
+                  WAV
+                </Badge>
+                {kit.stemsHandle && (
+                  <Badge 
+                    variant={selectedFormat === 'stems' ? 'default' : 'outline'}
+                    className={cn(
+                      "cursor-pointer text-sm px-4 py-1.5",
+                      selectedFormat === 'stems' ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20'
+                    )}
+                    onClick={() => setSelectedFormat('stems')}
+                  >
+                    WAV + Stems
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* Add to Cart Button */}
             <Button
               size="lg"
-              className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6 mb-8"
               onClick={handleAddToCart}
               disabled={cartLoading}
             >
@@ -487,18 +542,14 @@ export default function ProductPage() {
             </Button>
 
             {/* Create Your Own Bundle Section */}
-            <section className="mt-8">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">
-                  Create Your Own Bundle
-                </h2>
-              </div>
+            <section>
+              <h2 className="text-lg font-bold mb-4">Create Your Own Bundle</h2>
 
               {/* Bundle Preview Thumbnails with + signs */}
               <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-2">
                 {selectedBundleItems.map((item, index) => (
                   <div key={item.kit.id} className="flex items-center">
-                    <div className="w-14 h-14 rounded overflow-hidden border border-border flex-shrink-0">
+                    <div className="w-12 h-12 rounded overflow-hidden border border-border flex-shrink-0">
                       <img 
                         src={item.kit.image} 
                         alt={item.kit.title} 
@@ -516,7 +567,7 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {/* Add Bundle to Cart - Outline style like reference */}
+              {/* Add Bundle to Cart */}
               <Button
                 size="lg"
                 variant="outline"
@@ -544,23 +595,38 @@ export default function ProductPage() {
               </div>
             </section>
 
-            {/* Product Description below bundle */}
-            <div className="mt-8 pt-8 border-t border-border">
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">About This Kit</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {kit.description}
-              </p>
-              
-              {/* License Info */}
-              <p className="mt-6 text-xs text-muted-foreground">
-                By purchasing, you agree to our{' '}
-                <Link to="/terms" className="text-primary hover:underline">
-                  Master Use License Agreement
-                </Link>
-              </p>
-            </div>
+            {/* License Info */}
+            <p className="mt-8 text-xs text-muted-foreground">
+              By purchasing, you agree to our{' '}
+              <Link to="/terms" className="text-primary hover:underline">
+                Master Use License Agreement
+              </Link>
+            </p>
           </motion.div>
         </div>
+
+        {/* Stay Updated Newsletter Section */}
+        <section className="mt-20 text-center max-w-md mx-auto">
+          <h2 className="text-xl font-bold mb-2">Stay Updated</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Get notified about new releases, sample packs, and exclusive content.
+          </p>
+          <div className="space-y-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              type="tel"
+              placeholder="Phone number"
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6">
+              Subscribe
+            </Button>
+          </div>
+        </section>
       </div>
     </Layout>
   );
