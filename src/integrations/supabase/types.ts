@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      lifetime_access_codes: {
+        Row: {
+          code_used: string
+          email: string
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_revoked: boolean | null
+          notes: string | null
+          purchase_verified: boolean | null
+          revoked_at: string | null
+          revoked_reason: string | null
+        }
+        Insert: {
+          code_used: string
+          email: string
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          notes?: string | null
+          purchase_verified?: boolean | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+        }
+        Update: {
+          code_used?: string
+          email?: string
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          notes?: string | null
+          purchase_verified?: boolean | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+        }
+        Relationships: []
+      }
       pantheon_content: {
         Row: {
           created_at: string | null

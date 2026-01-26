@@ -320,44 +320,63 @@ const MembersPage = () => {
             </h2>
             
             {subscription.subscribed ? (
-              loadingContent ? (
-                <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                  <p className="text-muted-foreground mt-2">Loading content...</p>
-                </div>
-              ) : pantheonContent.length > 0 ? (
+              <div className="space-y-4">
+                {/* Active content - Members Only Sample Kit */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/30 hover:border-primary transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-primary font-medium uppercase tracking-wider">
+                        Samples
+                      </span>
+                      <h3 className="font-semibold mt-1">Members Only Sample Kit</h3>
+                      <p className="text-sm text-muted-foreground mt-1">Exclusive samples for Pantheon members</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      onClick={() => window.open('DROPBOX_LINK_HERE', '_blank')}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                </motion.div>
+
+                {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
-                  {pantheonContent.map((item) => (
+                  {[
+                    { type: 'Beats', title: 'Exclusive Beat Pack Vol. 1' },
+                    { type: 'CST', title: 'Premium CST Collection' },
+                    { type: 'VST', title: 'VST Essentials Bundle' },
+                    { type: 'Collab', title: 'Collab Placement Pack' },
+                    { type: 'New', title: 'Bi-Weekly Drops' },
+                  ].map((item, index) => (
                     <motion.div
-                      key={item.id}
+                      key={index}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/30 hover:border-primary transition-colors"
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-card/30 backdrop-blur-sm p-6 rounded-xl border border-border/50"
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-xs text-primary font-medium uppercase tracking-wider">
+                          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
                             {item.type}
                           </span>
-                          <h3 className="font-semibold mt-1">{item.title}</h3>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                          )}
+                          <h3 className="font-semibold mt-1 text-muted-foreground">{item.title}</h3>
                         </div>
-                        <Button size="sm" variant="secondary" onClick={() => handleDownloadContent(item)}>
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
+                        <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                          Coming Soon
+                        </span>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              ) : (
-                <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
-                  <Crown className="h-12 w-12 text-primary mx-auto mb-3" />
-                  <p className="text-muted-foreground">New exclusive content coming soon!</p>
-                </div>
-              )
+              </div>
             ) : (
               <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
                 <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
