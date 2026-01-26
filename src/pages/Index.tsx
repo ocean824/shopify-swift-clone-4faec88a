@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { sampleKits } from '@/data/sampleKits';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
-import logo from '@/assets/logo-main.webp';
+import heroBanner from '@/assets/hero-banner.png';
 
 function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: number }) {
   return (
@@ -86,19 +86,26 @@ const Index = () => {
     <Layout>
       <BeamsBackground />
       
-      {/* Hero Section with Logo */}
-      <section className="relative z-10 overflow-hidden py-16 md:py-24">
-        <div className="container mx-auto px-4 text-center">
-          <motion.img 
-            src={logo} 
-            alt="Sample Society" 
-            className="mx-auto h-32 w-auto md:h-48 lg:h-56"
-            initial={{ opacity: 0, scale: 0.9 }}
+      {/* Hero Section with Wide Banner */}
+      <section className="relative z-10 overflow-hidden py-8 md:py-12">
+        <div className="container mx-auto px-4">
+          <motion.div 
+            className="relative w-full overflow-hidden rounded-lg"
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-          />
+          >
+            {/* Wide banner with cropping to center on SAMPLE SOCIETY text */}
+            <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
+              <img 
+                src={heroBanner} 
+                alt="Sample Society" 
+                className="w-full h-[200%] object-cover object-[center_35%]"
+              />
+            </div>
+          </motion.div>
           <motion.p 
-            className="mx-auto mt-6 max-w-2xl text-muted-foreground"
+            className="mx-auto mt-6 max-w-2xl text-center text-muted-foreground"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
