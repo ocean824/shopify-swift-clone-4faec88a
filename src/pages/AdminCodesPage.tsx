@@ -151,7 +151,30 @@ const AdminCodesPage = () => {
 
       if (error) throw error;
 
-      toast({ title: "Success", description: "Discount code created!" });
+      // Try to sync to Shopify (optional - will work locally even if Shopify sync fails)
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.access_token) {
+          const syncResponse = await supabase.functions.invoke('sync-discount-to-shopify', {
+            body: {
+              code: formCode.toUpperCase().trim(),
+              discountType: formDiscountType,
+              discountValue: parseFloat(formDiscountValue) || 0,
+              validUntil: formValidUntil || null,
+            }
+          });
+          
+          if (syncResponse.data?.synced) {
+            toast({ title: "Success", description: "Discount code created and synced to Shopify!" });
+          } else {
+            toast({ title: "Success", description: "Discount code created! (Shopify sync: " + (syncResponse.data?.message || 'pending') + ")" });
+          }
+        }
+      } catch (syncErr) {
+        console.log('Shopify sync optional:', syncErr);
+        toast({ title: "Success", description: "Discount code created!" });
+      }
+
       setCreateDialogOpen(false);
       resetForm();
       fetchCodes();

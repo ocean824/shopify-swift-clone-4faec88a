@@ -242,6 +242,39 @@ export const CART_LINES_REMOVE_MUTATION = `
   }
 `;
 
+export const CART_DISCOUNT_CODES_UPDATE_MUTATION = `
+  mutation cartDiscountCodesUpdate($cartId: ID!, $discountCodes: [String!]) {
+    cartDiscountCodesUpdate(cartId: $cartId, discountCodes: $discountCodes) {
+      cart {
+        id
+        checkoutUrl
+        discountCodes {
+          code
+          applicable
+        }
+        cost {
+          totalAmount {
+            amount
+            currencyCode
+          }
+          subtotalAmount {
+            amount
+            currencyCode
+          }
+          totalTaxAmount {
+            amount
+            currencyCode
+          }
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
 // API Helper
 export async function storefrontApiRequest<T = any>(
   query: string, 
