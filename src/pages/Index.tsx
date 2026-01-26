@@ -165,61 +165,15 @@ function LoadingSkeleton() {
   );
 }
 
-// Featured Bundle Card Component - larger, centered
-function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
-  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
+// External bundle URL
+const BUNDLE_EXTERNAL_URL = 'https://my.flowlance.com/samplesociety';
 
-  const handleAddToCart = async (e: React.MouseEvent) => {
+// Featured Bundle Card Component - links to external URL
+function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
+  const handleGetBundle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const variantId = kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-wav`;
-    const productId = kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
-    
-    const productData = {
-      node: {
-        id: productId,
-        title: kit.title,
-        description: kit.description,
-        handle: kit.wavHandle,
-        productType: kit.category,
-        vendor: 'Samplesociety',
-        priceRange: {
-          minVariantPrice: { amount: String(kit.wavPrice), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(kit.wavPrice), currencyCode: 'USD' },
-        },
-        compareAtPriceRange: {
-          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-        },
-        images: {
-          edges: [{ node: { url: kit.image, altText: kit.title } }],
-        },
-        variants: {
-          edges: [{
-            node: {
-              id: variantId,
-              title: 'WAV',
-              price: { amount: String(kit.wavPrice), currencyCode: 'USD' },
-              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
-              availableForSale: true,
-              selectedOptions: [{ name: 'Format', value: 'WAV' }],
-            },
-          }],
-        },
-        options: [{ name: 'Format', values: ['WAV'] }],
-      },
-    };
-
-    await addItem({
-      product: productData,
-      variantId: variantId,
-      variantTitle: 'WAV',
-      price: { amount: String(kit.wavPrice), currencyCode: 'USD' },
-      quantity: 1,
-      selectedOptions: [{ name: 'Format', value: 'WAV' }],
-    });
-    openCart();
+    window.open(BUNDLE_EXTERNAL_URL, '_blank');
   };
 
   return (
@@ -230,7 +184,12 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
       transition={{ duration: 0.5 }}
       className="mx-auto max-w-md"
     >
-      <Link to={`/product/${kit.wavHandle}`} className="group block">
+      <a 
+        href={BUNDLE_EXTERNAL_URL} 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="group block"
+      >
         <div className="relative overflow-hidden rounded-xl bg-card border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20">
           {/* Limited Time Banner */}
           <div className="absolute inset-x-0 top-0 z-10 bg-primary py-2 text-center">
@@ -252,8 +211,7 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
                 <Button 
                   size="lg" 
                   className="font-semibold gap-2 text-lg px-8"
-                  onClick={handleAddToCart}
-                  disabled={cartLoading}
+                  onClick={handleGetBundle}
                 >
                   <ShoppingCart className="h-5 w-5" />
                   Get the Bundle
@@ -286,7 +244,7 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
             </div>
           </div>
         </div>
-      </Link>
+      </a>
     </motion.div>
   );
 }
