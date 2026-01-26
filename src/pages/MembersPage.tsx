@@ -332,13 +332,13 @@ const MembersPage = () => {
                       <span className="text-xs text-primary font-medium uppercase tracking-wider">
                         Samples
                       </span>
-                      <h3 className="font-semibold mt-1">Members Only Sample Kit</h3>
+                      <h3 className="font-semibold mt-1">Members Only Sample Kits</h3>
                       <p className="text-sm text-muted-foreground mt-1">Exclusive samples for Pantheon members</p>
                     </div>
                     <Button 
                       size="sm" 
                       variant="secondary" 
-                      onClick={() => window.open('DROPBOX_LINK_HERE', '_blank')}
+                      onClick={() => window.open('https://www.dropbox.com/scl/fo/py6d08xszo6cll8j7seor/h?rlkey=c0cmxyurvsp8fae63bjf95xd4&st=ewlptgim&dl=0', '_blank')}
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Download
