@@ -72,7 +72,7 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'Moonlight Drum Kit is a premium collection of one shots created by Niko The Great; capturing the atmosphere of late nights with crisp modern trap percussion and moody, understated textures. This kit is curated for producers looking to create polished, professional trap and R&B productions with sounds similar to Drake, PARTYNEXTDOOR, and Travis Scott.',
     artistsLike: ['Drake', 'PARTYNEXTDOOR', 'Travis Scott'],
-    audioPreviewUrl: undefined, // Need moonlight preview
+    audioPreviewUrl: `${AUDIO_BASE}/moonlight-drumkit-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/47706892239102',
     shopifyWavProductId: 'gid://shopify/Product/9112655134974',
   },
