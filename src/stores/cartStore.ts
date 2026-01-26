@@ -9,6 +9,7 @@ import {
   CART_LINES_ADD_MUTATION,
   CART_LINES_UPDATE_MUTATION,
   CART_LINES_REMOVE_MUTATION,
+  CART_DISCOUNT_CODES_UPDATE_MUTATION,
   ShopifyProduct,
   ShopifyPrice,
 } from '@/lib/shopify';
@@ -24,6 +25,15 @@ export interface CartItem {
   selectedOptions: Array<{ name: string; value: string }>;
 }
 
+export interface AppliedDiscount {
+  code: string;
+  discountType: string;
+  discountValue: number;
+  discountAmount: number;
+  discountDisplay: string;
+  grantsLifetime?: boolean;
+}
+
 interface CartStore {
   items: CartItem[];
   cartId: string | null;
@@ -31,6 +41,8 @@ interface CartStore {
   isOpen: boolean;
   isLoading: boolean;
   isSyncing: boolean;
+  appliedDiscount: AppliedDiscount | null;
+  discountError: string | null;
   
   // Actions
   addItem: (item: Omit<CartItem, 'lineId'>) => Promise<void>;
@@ -42,6 +54,8 @@ interface CartStore {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
+  applyDiscountCode: (code: string) => Promise<boolean>;
+  removeDiscountCode: () => Promise<void>;
   
   // Computed
   totalItems: () => number;
@@ -49,6 +63,7 @@ interface CartStore {
   bundleDiscount: () => number;
   discountedSubtotal: () => number;
   bundleDiscountPercent: () => number;
+  finalTotal: () => number;
 }
 
 async function createShopifyCart(item: CartItem): Promise<{ 
@@ -148,6 +163,8 @@ export const useCartStore = create<CartStore>()(
       isOpen: false,
       isLoading: false,
       isSyncing: false,
+      appliedDiscount: null,
+      discountError: null,
 
       addItem: async (item) => {
         const { items, cartId, clearCart } = get();
@@ -254,13 +271,104 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      clearCart: () => set({ items: [], cartId: null, checkoutUrl: null }),
+      clearCart: () => set({ 
+        items: [], 
+        cartId: null, 
+        checkoutUrl: null, 
+        appliedDiscount: null, 
+        discountError: null 
+      }),
 
       getCheckoutUrl: () => get().checkoutUrl,
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
+
+      applyDiscountCode: async (code: string) => {
+        const { cartId } = get();
+        set({ isLoading: true, discountError: null });
+        
+        try {
+          // First validate with our database
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-discount`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ 
+              code, 
+              cartSubtotal: get().discountedSubtotal() 
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (!result.valid) {
+            set({ discountError: result.message || 'Invalid discount code' });
+            return false;
+          }
+          
+          // Apply to Shopify cart if we have one
+          if (cartId) {
+            const data = await storefrontApiRequest(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
+              cartId,
+              discountCodes: [code.toUpperCase()],
+            });
+            
+            const cart = data?.data?.cartDiscountCodesUpdate?.cart;
+            if (cart?.checkoutUrl) {
+              set({ checkoutUrl: formatCheckoutUrl(cart.checkoutUrl) });
+            }
+          }
+          
+          set({ 
+            appliedDiscount: {
+              code: result.code,
+              discountType: result.discountType,
+              discountValue: result.discountValue,
+              discountAmount: result.discountAmount,
+              discountDisplay: result.discountDisplay,
+              grantsLifetime: result.grantsLifetime,
+            },
+            discountError: null,
+          });
+          
+          return true;
+        } catch (error) {
+          console.error('Failed to apply discount:', error);
+          set({ discountError: 'Failed to apply discount code' });
+          return false;
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      removeDiscountCode: async () => {
+        const { cartId } = get();
+        set({ isLoading: true });
+        
+        try {
+          if (cartId) {
+            const data = await storefrontApiRequest(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
+              cartId,
+              discountCodes: [],
+            });
+            
+            const cart = data?.data?.cartDiscountCodesUpdate?.cart;
+            if (cart?.checkoutUrl) {
+              set({ checkoutUrl: formatCheckoutUrl(cart.checkoutUrl) });
+            }
+          }
+          
+          set({ appliedDiscount: null, discountError: null });
+        } catch (error) {
+          console.error('Failed to remove discount:', error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
 
       syncCart: async () => {
         const { cartId, isSyncing, clearCart } = get();
@@ -304,6 +412,23 @@ export const useCartStore = create<CartStore>()(
       discountedSubtotal: () => {
         return get().subtotal() - get().bundleDiscount();
       },
+
+      finalTotal: () => {
+        const discountedSubtotal = get().discountedSubtotal();
+        const appliedDiscount = get().appliedDiscount;
+        
+        if (!appliedDiscount) return discountedSubtotal;
+        
+        if (appliedDiscount.discountType === 'percentage') {
+          return discountedSubtotal * (1 - appliedDiscount.discountValue / 100);
+        } else if (appliedDiscount.discountType === 'fixed') {
+          return Math.max(0, discountedSubtotal - appliedDiscount.discountValue);
+        } else if (appliedDiscount.discountType === 'free') {
+          return 0;
+        }
+        
+        return discountedSubtotal;
+      },
     }),
     {
       name: 'shopify-cart',
@@ -312,6 +437,7 @@ export const useCartStore = create<CartStore>()(
         items: state.items,
         cartId: state.cartId,
         checkoutUrl: state.checkoutUrl,
+        appliedDiscount: state.appliedDiscount,
       }),
     }
   )

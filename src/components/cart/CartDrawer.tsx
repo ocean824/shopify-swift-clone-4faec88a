@@ -1,8 +1,9 @@
-import { X, Minus, Plus, ShoppingBag, ExternalLink, Loader2 } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ExternalLink, Loader2, Tag, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useCartStore } from '@/stores/cartStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function CartDrawer() {
   const { 
@@ -20,7 +21,15 @@ export function CartDrawer() {
     totalItems,
     getCheckoutUrl,
     syncCart,
+    appliedDiscount,
+    discountError,
+    applyDiscountCode,
+    removeDiscountCode,
+    finalTotal,
   } = useCartStore();
+
+  const [discountCode, setDiscountCode] = useState('');
+  const [isApplyingCode, setIsApplyingCode] = useState(false);
 
   // Sync cart when drawer opens
   useEffect(() => {
@@ -40,6 +49,22 @@ export function CartDrawer() {
       window.open(checkoutUrl, '_blank');
       closeCart();
     }
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    setIsApplyingCode(true);
+    const success = await applyDiscountCode(discountCode.trim());
+    if (success) {
+      setDiscountCode('');
+    }
+    setIsApplyingCode(false);
+  };
+
+  const handleRemoveDiscount = async () => {
+    setIsApplyingCode(true);
+    await removeDiscountCode();
+    setIsApplyingCode(false);
   };
 
   return (
@@ -179,6 +204,59 @@ export function CartDrawer() {
               {/* Footer */}
               {items.length > 0 && (
                 <div className="border-t border-border px-6 py-4">
+                  {/* Discount Code Input */}
+                  <div className="mb-4">
+                    {appliedDiscount ? (
+                      <div className="flex items-center justify-between rounded-lg bg-green-500/10 border border-green-500/30 p-3">
+                        <div className="flex items-center gap-2">
+                          <Check className="h-4 w-4 text-green-500" />
+                          <span className="text-sm font-medium text-green-500">
+                            {appliedDiscount.code}: {appliedDiscount.discountDisplay}
+                          </span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleRemoveDiscount}
+                          disabled={isApplyingCode}
+                          className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Discount code"
+                              value={discountCode}
+                              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
+                              className="pl-9"
+                              disabled={isApplyingCode}
+                            />
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            onClick={handleApplyDiscount}
+                            disabled={isApplyingCode || !discountCode.trim()}
+                          >
+                            {isApplyingCode ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Apply'
+                            )}
+                          </Button>
+                        </div>
+                        {discountError && (
+                          <p className="text-xs text-destructive">{discountError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Subtotal */}
                   <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
                     <span>Subtotal ({totalItems()} items)</span>
@@ -196,11 +274,34 @@ export function CartDrawer() {
                       </span>
                     </div>
                   )}
+
+                  {/* Code Discount */}
+                  {appliedDiscount && (
+                    <div className="mb-2 flex items-center justify-between text-sm">
+                      <span className="text-green-500 font-medium">
+                        Code: {appliedDiscount.code}
+                      </span>
+                      <span className="text-green-500 font-medium">
+                        {appliedDiscount.discountType === 'percentage' 
+                          ? `-${appliedDiscount.discountValue}%`
+                          : appliedDiscount.discountType === 'free'
+                          ? '-100%'
+                          : `-${formatPrice(appliedDiscount.discountValue)}`}
+                      </span>
+                    </div>
+                  )}
                   
                   {/* Total */}
                   <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">Total</span>
-                    <span className="text-lg font-bold">{formatPrice(discountedSubtotal())}</span>
+                    <div className="text-right">
+                      {(bundleDiscountPercent() > 0 || appliedDiscount) && (
+                        <span className="text-sm text-muted-foreground line-through mr-2">
+                          {formatPrice(subtotal())}
+                        </span>
+                      )}
+                      <span className="text-lg font-bold">{formatPrice(finalTotal())}</span>
+                    </div>
                   </div>
                   
                   {bundleDiscountPercent() < 0.50 && totalItems() >= 2 && (
