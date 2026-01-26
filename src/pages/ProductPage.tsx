@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, ArrowLeft, Play, Pause, Check } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -10,30 +10,39 @@ import { useCartStore } from '@/stores/cartStore';
 import { findKitByHandle, sampleKits, SampleKit } from '@/data/sampleKits';
 import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
-import { useAudio } from '@/components/audio/AudioPlayer';
 
-// Waveform Audio Player Component
-function WaveformPlayer({ audioUrl, title, kitId }: { audioUrl?: string; title: string; kitId: string }) {
-  const { play, isPlaying, progress, duration, seek } = useAudio();
-  const playing = isPlaying(kitId);
+// Local Audio Player for Product Page - uses its own audio ref
+function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [bars] = useState(() => 
     Array.from({ length: 50 }, () => Math.random() * 0.6 + 0.2)
   );
 
   const togglePlay = () => {
-    if (audioUrl) {
-      play(kitId, audioUrl);
+    if (!audioRef.current || !audioUrl) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(console.error);
+      setIsPlaying(true);
     }
   };
 
-  const progressPercentage = duration > 0 ? (progress / duration) * 100 : 0;
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const prog = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+    setProgress(prog || 0);
+  };
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!duration) return;
+    if (!audioRef.current || !audioRef.current.duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = x / rect.width;
-    seek(percentage);
+    audioRef.current.currentTime = percentage * audioRef.current.duration;
   };
 
   if (!audioUrl) {
@@ -56,13 +65,21 @@ function WaveformPlayer({ audioUrl, title, kitId }: { audioUrl?: string; title: 
 
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-card/50 p-4">
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={() => setIsPlaying(false)}
+        preload="metadata"
+      />
+      
       <Button
         variant="outline"
         size="icon"
         className="h-12 w-12 rounded-full border-primary hover:bg-primary/20"
         onClick={togglePlay}
       >
-        {playing ? (
+        {isPlaying ? (
           <Pause className="h-5 w-5 text-primary" />
         ) : (
           <Play className="h-5 w-5 ml-0.5 text-primary" />
@@ -75,7 +92,7 @@ function WaveformPlayer({ audioUrl, title, kitId }: { audioUrl?: string; title: 
         onClick={handleClick}
       >
         {bars.map((height, i) => {
-          const isActive = playing && (i / bars.length) * 100 < progressPercentage;
+          const isActive = (i / bars.length) * 100 < progress;
           return (
             <div
               key={i}
@@ -89,6 +106,54 @@ function WaveformPlayer({ audioUrl, title, kitId }: { audioUrl?: string; title: 
         })}
       </div>
     </div>
+  );
+}
+
+// Bundle Item Audio Player - simpler inline player
+function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlay = () => {
+    if (!audioRef.current || !audioUrl) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(console.error);
+      setIsPlaying(true);
+    }
+  };
+
+  if (!audioUrl) {
+    return (
+      <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+        <Play className="h-4 w-4 ml-0.5 text-muted-foreground" />
+      </Button>
+    );
+  }
+
+  return (
+    <>
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onEnded={() => setIsPlaying(false)}
+        preload="none"
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={togglePlay}
+      >
+        {isPlaying ? (
+          <Pause className="h-4 w-4" />
+        ) : (
+          <Play className="h-4 w-4 ml-0.5" />
+        )}
+      </Button>
+    </>
   );
 }
 
@@ -106,27 +171,17 @@ function BundleItem({
   onToggle: () => void;
   onFormatChange: (format: 'wav' | 'stems') => void;
 }) {
-  const { play, isPlaying } = useAudio();
-  const playing = isPlaying(kit.id);
   const hasStems = !!kit.stemsHandle;
   const currentPrice = selectedFormat === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
   const { addItem, isLoading: cartLoading, openCart } = useCartStore();
 
-  const handlePlayClick = () => {
-    if (kit.audioPreviewUrl) {
-      play(kit.id, kit.audioPreviewUrl);
-    }
-  };
-
   const handleFormatClick = async (format: 'wav' | 'stems') => {
     onFormatChange(format);
     
-    // If not already selected, select and add to cart
     if (!isSelected) {
       onToggle();
     }
     
-    // Add to cart with selected format
     const price = format === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
     const variantId = format === 'stems' && kit.shopifyStemsVariantId
       ? kit.shopifyStemsVariantId
@@ -193,19 +248,7 @@ function BundleItem({
         className="border-primary data-[state=checked]:bg-primary"
       />
       
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={handlePlayClick}
-        disabled={!kit.audioPreviewUrl}
-      >
-        {playing ? (
-          <Pause className="h-4 w-4" />
-        ) : (
-          <Play className="h-4 w-4 ml-0.5" />
-        )}
-      </Button>
+      <BundleItemPlayer audioUrl={kit.audioPreviewUrl} kitId={kit.id} />
 
       <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
         <img src={kit.image} alt={kit.title} className="w-full h-full object-cover" />
@@ -313,7 +356,6 @@ export default function ProductPage() {
   const selectedBundleItems = bundleItems.filter(item => item.selected);
 
   const handleAddToCart = async () => {
-    // Use real Shopify variant IDs when available
     const variantId = selectedFormat === 'stems' && kit.shopifyStemsVariantId 
       ? kit.shopifyStemsVariantId 
       : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${selectedFormat}`;
@@ -436,7 +478,6 @@ export default function ProductPage() {
       const price = format === 'stems' && item.kit.stemsPrice ? item.kit.stemsPrice : item.kit.wavPrice;
       const productHandle = format === 'stems' && item.kit.stemsHandle ? item.kit.stemsHandle : item.kit.wavHandle;
 
-      // Use real Shopify variant IDs when available
       const variantId = format === 'stems' && item.kit.shopifyStemsVariantId
         ? item.kit.shopifyStemsVariantId
         : item.kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${item.kit.id}-${format}`;
@@ -521,14 +562,14 @@ export default function ProductPage() {
           Back to store
         </Link>
 
-        <div className="grid gap-12 lg:grid-cols-2">
-          {/* Left Column - Product Image */}
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Left Column - Product Image (centered/aligned left) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+            className="flex justify-start"
           >
-            <div className="aspect-square overflow-hidden rounded-xl border border-border bg-card">
+            <div className="w-full max-w-md aspect-square overflow-hidden rounded-xl border border-border bg-card">
               <img
                 src={kit.image}
                 alt={kit.title}
@@ -566,7 +607,7 @@ export default function ProductPage() {
 
             {/* Audio Player */}
             <div className="mt-6">
-              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} kitId={kit.id} />
+              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
             </div>
 
             {/* Description */}
@@ -585,7 +626,7 @@ export default function ProductPage() {
             {/* Format Selector - Clicking adds to cart */}
             <div className="mt-6">
               <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">Format (Click to Add to Cart)</h3>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Button
                   variant={selectedFormat === 'wav' ? 'default' : 'outline'}
                   onClick={() => handleFormatAddToCart('wav')}
