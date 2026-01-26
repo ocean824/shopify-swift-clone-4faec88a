@@ -11,7 +11,9 @@ const navigation = [
   { name: 'DRUM KITS', href: '/drum-kits' },
   { name: 'MIDI KITS', href: '/midi-kits' },
   { name: 'MERCH', href: '/merch' },
-  { name: 'RESOURCES', href: '/resources' },
+  { name: 'CREDITS', href: '/credits' },
+  { name: 'TERMS', href: '/terms' },
+  { name: 'CONTACT', href: '/contact' },
   { name: 'ALL KITS BUNDLE', href: '/bundle', highlight: true },
 ];
 
