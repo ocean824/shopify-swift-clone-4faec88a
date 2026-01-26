@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '@/hooks/useTheme';
 
 export function BeamsBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -10,6 +12,8 @@ export function BeamsBackground() {
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const isDark = theme === 'dark';
 
     let animationId: number;
     let particles: Array<{
@@ -46,7 +50,7 @@ export function BeamsBackground() {
     const drawBeams = () => {
       const time = Date.now() * 0.0003;
       
-      // Draw multiple beams - greyscale glow
+      // Draw multiple beams - adapt to theme
       for (let i = 0; i < 5; i++) {
         const gradient = ctx.createLinearGradient(
           canvas.width * 0.5 + Math.sin(time + i) * 200,
@@ -55,9 +59,10 @@ export function BeamsBackground() {
           canvas.height
         );
         
-        gradient.addColorStop(0, 'hsla(0, 0%, 30%, 0)');
-        gradient.addColorStop(0.5, `hsla(0, 0%, 40%, ${0.04 + Math.sin(time * 2 + i) * 0.02})`);
-        gradient.addColorStop(1, 'hsla(0, 0%, 30%, 0)');
+        const beamColor = isDark ? '30%' : '70%';
+        gradient.addColorStop(0, `hsla(0, 0%, ${beamColor}, 0)`);
+        gradient.addColorStop(0.5, `hsla(0, 0%, ${beamColor}, ${0.04 + Math.sin(time * 2 + i) * 0.02})`);
+        gradient.addColorStop(1, `hsla(0, 0%, ${beamColor}, 0)`);
         
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -65,6 +70,9 @@ export function BeamsBackground() {
     };
 
     const drawParticles = () => {
+      // Use white particles on dark, dark particles on light
+      const particleColor = isDark ? '100%' : '20%';
+      
       particles.forEach((particle) => {
         particle.x += particle.speedX;
         particle.y += particle.speedY;
@@ -77,7 +85,7 @@ export function BeamsBackground() {
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(0, 0%, 100%, ${particle.opacity})`;
+        ctx.fillStyle = `hsla(0, 0%, ${particleColor}, ${particle.opacity})`;
         ctx.fill();
       });
     };
@@ -97,7 +105,7 @@ export function BeamsBackground() {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(animationId);
     };
-  }, []);
+  }, [theme]);
 
   return (
     <>
