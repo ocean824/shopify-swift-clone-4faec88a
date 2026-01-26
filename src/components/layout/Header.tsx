@@ -4,6 +4,8 @@ import { ShoppingCart, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
+import { useTheme } from '@/hooks/useTheme';
+import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo-main.webp';
 
@@ -25,6 +27,7 @@ const navigation = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openCart, totalItems } = useCartStore();
+  const { theme } = useTheme();
   const itemCount = totalItems();
   const location = useLocation();
 
@@ -33,7 +36,14 @@ export function Header() {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Sample Society" className="h-10 w-auto invert brightness-0 invert" />
+          <img 
+            src={logo} 
+            alt="Sample Society" 
+            className={cn(
+              "h-10 w-auto",
+              theme === 'dark' && "invert brightness-0 invert"
+            )} 
+          />
         </Link>
 
         {/* Desktop Navigation */}
@@ -56,7 +66,9 @@ export function Header() {
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          
           <Button
             variant="ghost"
             size="icon"

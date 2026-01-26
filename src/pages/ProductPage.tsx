@@ -10,38 +10,30 @@ import { useCartStore } from '@/stores/cartStore';
 import { findKitByHandle, sampleKits, SampleKit } from '@/data/sampleKits';
 import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
+import { useAudio } from '@/components/audio/AudioPlayer';
 
 // Waveform Audio Player Component
-function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+function WaveformPlayer({ audioUrl, title, kitId }: { audioUrl?: string; title: string; kitId: string }) {
+  const { play, isPlaying, progress, duration, seek } = useAudio();
+  const playing = isPlaying(kitId);
   const [bars] = useState(() => 
     Array.from({ length: 50 }, () => Math.random() * 0.6 + 0.2)
   );
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+    if (audioUrl) {
+      play(kitId, audioUrl);
     }
-    setIsPlaying(!isPlaying);
   };
 
-  const handleTimeUpdate = () => {
-    if (!audioRef.current) return;
-    const prog = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-    setProgress(prog || 0);
-  };
+  const progressPercentage = duration > 0 ? (progress / duration) * 100 : 0;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current) return;
+    if (!duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = x / rect.width;
-    audioRef.current.currentTime = percentage * audioRef.current.duration;
+    seek(percentage);
   };
 
   if (!audioUrl) {
@@ -64,20 +56,13 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
 
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-card/50 p-4">
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
-      />
-      
       <Button
         variant="outline"
         size="icon"
         className="h-12 w-12 rounded-full border-primary hover:bg-primary/20"
         onClick={togglePlay}
       >
-        {isPlaying ? (
+        {playing ? (
           <Pause className="h-5 w-5 text-primary" />
         ) : (
           <Play className="h-5 w-5 ml-0.5 text-primary" />
@@ -90,7 +75,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
         onClick={handleClick}
       >
         {bars.map((height, i) => {
-          const isActive = (i / bars.length) * 100 < progress;
+          const isActive = playing && (i / bars.length) * 100 < progressPercentage;
           return (
             <div
               key={i}
@@ -114,19 +99,88 @@ function BundleItem({
   selectedFormat,
   onToggle,
   onFormatChange,
-  onPlay,
-  isPlaying
 }: { 
   kit: SampleKit;
   isSelected: boolean;
   selectedFormat: 'wav' | 'stems';
   onToggle: () => void;
   onFormatChange: (format: 'wav' | 'stems') => void;
-  onPlay: () => void;
-  isPlaying: boolean;
 }) {
+  const { play, isPlaying } = useAudio();
+  const playing = isPlaying(kit.id);
   const hasStems = !!kit.stemsHandle;
   const currentPrice = selectedFormat === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
+  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
+
+  const handlePlayClick = () => {
+    if (kit.audioPreviewUrl) {
+      play(kit.id, kit.audioPreviewUrl);
+    }
+  };
+
+  const handleFormatClick = async (format: 'wav' | 'stems') => {
+    onFormatChange(format);
+    
+    // If not already selected, select and add to cart
+    if (!isSelected) {
+      onToggle();
+    }
+    
+    // Add to cart with selected format
+    const price = format === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
+    const variantId = format === 'stems' && kit.shopifyStemsVariantId
+      ? kit.shopifyStemsVariantId
+      : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${format}`;
+    
+    const productId = format === 'stems' && kit.shopifyStemsProductId
+      ? kit.shopifyStemsProductId
+      : kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
+
+    const productData = {
+      node: {
+        id: productId,
+        title: kit.title,
+        description: kit.description,
+        handle: format === 'stems' && kit.stemsHandle ? kit.stemsHandle : kit.wavHandle,
+        productType: kit.category,
+        vendor: 'Samplesociety',
+        priceRange: {
+          minVariantPrice: { amount: String(price), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(price), currencyCode: 'USD' },
+        },
+        compareAtPriceRange: {
+          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+        },
+        images: {
+          edges: [{ node: { url: kit.image, altText: kit.title } }],
+        },
+        variants: {
+          edges: [{
+            node: {
+              id: variantId,
+              title: format === 'stems' ? 'WAV + Stems' : 'WAV',
+              price: { amount: String(price), currencyCode: 'USD' },
+              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
+              availableForSale: true,
+              selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
+            },
+          }],
+        },
+        options: [{ name: 'Format', values: kit.stemsHandle ? ['WAV', 'WAV + Stems'] : ['WAV'] }],
+      },
+    };
+
+    await addItem({
+      product: productData,
+      variantId: variantId,
+      variantTitle: format === 'stems' ? 'WAV + Stems' : 'WAV',
+      price: { amount: String(price), currencyCode: 'USD' },
+      quantity: 1,
+      selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
+    });
+    openCart();
+  };
 
   return (
     <div className={cn(
@@ -143,9 +197,10 @@ function BundleItem({
         variant="ghost"
         size="icon"
         className="h-8 w-8"
-        onClick={onPlay}
+        onClick={handlePlayClick}
+        disabled={!kit.audioPreviewUrl}
       >
-        {isPlaying ? (
+        {playing ? (
           <Pause className="h-4 w-4" />
         ) : (
           <Play className="h-4 w-4 ml-0.5" />
@@ -170,7 +225,7 @@ function BundleItem({
               "cursor-pointer text-xs px-2 py-0",
               selectedFormat === 'wav' ? 'bg-primary' : 'hover:bg-primary/20'
             )}
-            onClick={() => onFormatChange('wav')}
+            onClick={() => handleFormatClick('wav')}
           >
             WAV
           </Badge>
@@ -181,7 +236,7 @@ function BundleItem({
                 "cursor-pointer text-xs px-2 py-0",
                 selectedFormat === 'stems' ? 'bg-primary' : 'hover:bg-primary/20'
               )}
-              onClick={() => onFormatChange('stems')}
+              onClick={() => handleFormatClick('stems')}
             >
               WAV + Stems
             </Badge>
@@ -199,7 +254,7 @@ function BundleItem({
 export default function ProductPage() {
   const { handle } = useParams<{ handle: string }>();
   const [selectedFormat, setSelectedFormat] = useState<'wav' | 'stems'>('wav');
-  const { addItem, isLoading: cartLoading } = useCartStore();
+  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
   
   // Bundle state
   const [bundleItems, setBundleItems] = useState<{
@@ -207,7 +262,6 @@ export default function ProductPage() {
     selected: boolean;
     format: 'wav' | 'stems';
   }[]>([]);
-  const [playingBundleId, setPlayingBundleId] = useState<string | null>(null);
 
   // Find kit from local data
   const kit = handle ? findKitByHandle(handle) : undefined;
@@ -313,6 +367,67 @@ export default function ProductPage() {
       quantity: 1,
       selectedOptions: [{ name: 'Format', value: selectedFormat === 'stems' ? 'WAV + Stems' : 'WAV' }],
     });
+    openCart();
+  };
+
+  const handleFormatAddToCart = async (format: 'wav' | 'stems') => {
+    setSelectedFormat(format);
+    
+    const price = format === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
+    const variantId = format === 'stems' && kit.shopifyStemsVariantId 
+      ? kit.shopifyStemsVariantId 
+      : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${format}`;
+    
+    const productId = format === 'stems' && kit.shopifyStemsProductId
+      ? kit.shopifyStemsProductId
+      : kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
+    
+    const productHandle = format === 'stems' && kit.stemsHandle ? kit.stemsHandle : kit.wavHandle;
+    
+    const productData = {
+      node: {
+        id: productId,
+        title: kit.title,
+        description: kit.description,
+        handle: productHandle,
+        productType: kit.category,
+        vendor: 'Samplesociety',
+        priceRange: {
+          minVariantPrice: { amount: String(price), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(price), currencyCode: 'USD' },
+        },
+        compareAtPriceRange: {
+          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+        },
+        images: {
+          edges: [{ node: { url: kit.image, altText: kit.title } }],
+        },
+        variants: {
+          edges: [{
+            node: {
+              id: variantId,
+              title: format === 'stems' ? 'WAV + Stems' : 'WAV',
+              price: { amount: String(price), currencyCode: 'USD' },
+              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
+              availableForSale: true,
+              selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
+            },
+          }],
+        },
+        options: [{ name: 'Format', values: kit.stemsHandle ? ['WAV', 'WAV + Stems'] : ['WAV'] }],
+      },
+    };
+
+    await addItem({
+      product: productData,
+      variantId: variantId,
+      variantTitle: format === 'stems' ? 'WAV + Stems' : 'WAV',
+      price: { amount: String(price), currencyCode: 'USD' },
+      quantity: 1,
+      selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
+    });
+    openCart();
   };
 
   const handleAddBundleToCart = async () => {
@@ -374,6 +489,7 @@ export default function ProductPage() {
         selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
       });
     }
+    openCart();
   };
 
   const toggleBundleItem = (kitId: string) => {
@@ -450,7 +566,7 @@ export default function ProductPage() {
 
             {/* Audio Player */}
             <div className="mt-6">
-              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
+              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} kitId={kit.id} />
             </div>
 
             {/* Description */}
@@ -466,30 +582,34 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Format Selector */}
+            {/* Format Selector - Clicking adds to cart */}
             <div className="mt-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">Format</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">Format (Click to Add to Cart)</h3>
               <div className="flex gap-3">
                 <Button
                   variant={selectedFormat === 'wav' ? 'default' : 'outline'}
-                  onClick={() => setSelectedFormat('wav')}
+                  onClick={() => handleFormatAddToCart('wav')}
+                  disabled={cartLoading}
                   className={cn(
-                    "px-6",
+                    "px-6 gap-2",
                     selectedFormat === 'wav' && "bg-primary hover:bg-primary/90"
                   )}
                 >
-                  WAV
+                  <ShoppingCart className="h-4 w-4" />
+                  WAV - ${kit.wavPrice}
                 </Button>
-                {kit.stemsHandle && (
+                {kit.stemsHandle && kit.stemsPrice && (
                   <Button
                     variant={selectedFormat === 'stems' ? 'default' : 'outline'}
-                    onClick={() => setSelectedFormat('stems')}
+                    onClick={() => handleFormatAddToCart('stems')}
+                    disabled={cartLoading}
                     className={cn(
-                      "px-6",
+                      "px-6 gap-2",
                       selectedFormat === 'stems' && "bg-primary hover:bg-primary/90"
                     )}
                   >
-                    WAV + Stems
+                    <ShoppingCart className="h-4 w-4" />
+                    WAV + Stems - ${kit.stemsPrice}
                   </Button>
                 )}
               </div>
@@ -567,8 +687,6 @@ export default function ProductPage() {
                 selectedFormat={item.format}
                 onToggle={() => toggleBundleItem(item.kit.id)}
                 onFormatChange={(format) => updateBundleFormat(item.kit.id, format)}
-                onPlay={() => setPlayingBundleId(playingBundleId === item.kit.id ? null : item.kit.id)}
-                isPlaying={playingBundleId === item.kit.id}
               />
             ))}
           </div>
