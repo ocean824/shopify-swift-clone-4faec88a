@@ -40,8 +40,8 @@ export function Header() {
             src={logo} 
             alt="Sample Society" 
             className={cn(
-              "h-10 w-auto",
-              theme === 'dark' && "invert brightness-0 invert"
+              "h-10 w-auto transition-all",
+              theme === 'dark' ? "invert" : ""
             )} 
           />
         </Link>
