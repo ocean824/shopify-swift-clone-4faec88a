@@ -29,9 +29,9 @@ export interface AppliedDiscount {
   code: string;
   discountType: string;
   discountValue: number;
-  discountAmount: number;
   discountDisplay: string;
   grantsLifetime?: boolean;
+  appliesTo?: string; // 'all', 'subscription', 'products'
 }
 
 interface CartStore {
@@ -41,7 +41,7 @@ interface CartStore {
   isOpen: boolean;
   isLoading: boolean;
   isSyncing: boolean;
-  appliedDiscount: AppliedDiscount | null;
+  appliedDiscounts: AppliedDiscount[]; // Changed to array for stacking
   discountError: string | null;
   
   // Actions
@@ -55,7 +55,8 @@ interface CartStore {
   closeCart: () => void;
   toggleCart: () => void;
   applyDiscountCode: (code: string) => Promise<boolean>;
-  removeDiscountCode: () => Promise<void>;
+  removeDiscountCode: (code: string) => Promise<void>;
+  clearAllDiscounts: () => Promise<void>;
   
   // Computed
   totalItems: () => number;
@@ -63,6 +64,8 @@ interface CartStore {
   bundleDiscount: () => number;
   discountedSubtotal: () => number;
   bundleDiscountPercent: () => number;
+  codeDiscountAmount: () => number;
+  totalSavings: () => number;
   finalTotal: () => number;
 }
 
@@ -163,7 +166,7 @@ export const useCartStore = create<CartStore>()(
       isOpen: false,
       isLoading: false,
       isSyncing: false,
-      appliedDiscount: null,
+      appliedDiscounts: [],
       discountError: null,
 
       addItem: async (item) => {
@@ -275,7 +278,7 @@ export const useCartStore = create<CartStore>()(
         items: [], 
         cartId: null, 
         checkoutUrl: null, 
-        appliedDiscount: null, 
+        appliedDiscounts: [], 
         discountError: null 
       }),
 
@@ -286,11 +289,18 @@ export const useCartStore = create<CartStore>()(
       toggleCart: () => set((state) => ({ isOpen: !state.isOpen })),
 
       applyDiscountCode: async (code: string) => {
-        const { cartId } = get();
+        const { cartId, appliedDiscounts } = get();
+        
+        // Check if already applied
+        if (appliedDiscounts.some(d => d.code.toUpperCase() === code.toUpperCase())) {
+          set({ discountError: 'This code is already applied' });
+          return false;
+        }
+        
         set({ isLoading: true, discountError: null });
         
         try {
-          // First validate with our database
+          // Validate with our database
           const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-discount`, {
             method: 'POST',
             headers: {
@@ -310,11 +320,14 @@ export const useCartStore = create<CartStore>()(
             return false;
           }
           
-          // Apply to Shopify cart if we have one
+          // Get all codes including the new one
+          const allCodes = [...appliedDiscounts.map(d => d.code), code.toUpperCase()];
+          
+          // Apply all codes to Shopify cart
           if (cartId) {
             const data = await storefrontApiRequest(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
               cartId,
-              discountCodes: [code.toUpperCase()],
+              discountCodes: allCodes,
             });
             
             const cart = data?.data?.cartDiscountCodesUpdate?.cart;
@@ -323,15 +336,18 @@ export const useCartStore = create<CartStore>()(
             }
           }
           
+          // Add to applied discounts array
+          const newDiscount: AppliedDiscount = {
+            code: result.code,
+            discountType: result.discountType,
+            discountValue: result.discountValue,
+            discountDisplay: result.discountDisplay,
+            grantsLifetime: result.grantsLifetime,
+            appliesTo: result.appliesTo || 'all',
+          };
+          
           set({ 
-            appliedDiscount: {
-              code: result.code,
-              discountType: result.discountType,
-              discountValue: result.discountValue,
-              discountAmount: result.discountAmount,
-              discountDisplay: result.discountDisplay,
-              grantsLifetime: result.grantsLifetime,
-            },
+            appliedDiscounts: [...appliedDiscounts, newDiscount],
             discountError: null,
           });
           
@@ -345,7 +361,37 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeDiscountCode: async () => {
+      removeDiscountCode: async (codeToRemove: string) => {
+        const { cartId, appliedDiscounts } = get();
+        set({ isLoading: true });
+        
+        try {
+          const remainingDiscounts = appliedDiscounts.filter(
+            d => d.code.toUpperCase() !== codeToRemove.toUpperCase()
+          );
+          
+          // Update Shopify cart with remaining codes
+          if (cartId) {
+            const data = await storefrontApiRequest(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
+              cartId,
+              discountCodes: remainingDiscounts.map(d => d.code),
+            });
+            
+            const cart = data?.data?.cartDiscountCodesUpdate?.cart;
+            if (cart?.checkoutUrl) {
+              set({ checkoutUrl: formatCheckoutUrl(cart.checkoutUrl) });
+            }
+          }
+          
+          set({ appliedDiscounts: remainingDiscounts, discountError: null });
+        } catch (error) {
+          console.error('Failed to remove discount:', error);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      clearAllDiscounts: async () => {
         const { cartId } = get();
         set({ isLoading: true });
         
@@ -362,9 +408,9 @@ export const useCartStore = create<CartStore>()(
             }
           }
           
-          set({ appliedDiscount: null, discountError: null });
+          set({ appliedDiscounts: [], discountError: null });
         } catch (error) {
-          console.error('Failed to remove discount:', error);
+          console.error('Failed to clear discounts:', error);
         } finally {
           set({ isLoading: false });
         }
@@ -413,21 +459,38 @@ export const useCartStore = create<CartStore>()(
         return get().subtotal() - get().bundleDiscount();
       },
 
-      finalTotal: () => {
+      codeDiscountAmount: () => {
         const discountedSubtotal = get().discountedSubtotal();
-        const appliedDiscount = get().appliedDiscount;
+        const appliedDiscounts = get().appliedDiscounts;
         
-        if (!appliedDiscount) return discountedSubtotal;
+        let totalCodeDiscount = 0;
+        let remainingAmount = discountedSubtotal;
         
-        if (appliedDiscount.discountType === 'percentage') {
-          return discountedSubtotal * (1 - appliedDiscount.discountValue / 100);
-        } else if (appliedDiscount.discountType === 'fixed') {
-          return Math.max(0, discountedSubtotal - appliedDiscount.discountValue);
-        } else if (appliedDiscount.discountType === 'free') {
-          return 0;
+        // Apply each discount code sequentially (they stack)
+        for (const discount of appliedDiscounts) {
+          if (discount.discountType === 'percentage') {
+            const discountAmount = remainingAmount * (discount.discountValue / 100);
+            totalCodeDiscount += discountAmount;
+            remainingAmount -= discountAmount;
+          } else if (discount.discountType === 'fixed') {
+            const discountAmount = Math.min(discount.discountValue, remainingAmount);
+            totalCodeDiscount += discountAmount;
+            remainingAmount -= discountAmount;
+          } else if (discount.discountType === 'free') {
+            totalCodeDiscount += remainingAmount;
+            remainingAmount = 0;
+          }
         }
         
-        return discountedSubtotal;
+        return totalCodeDiscount;
+      },
+
+      totalSavings: () => {
+        return get().bundleDiscount() + get().codeDiscountAmount();
+      },
+
+      finalTotal: () => {
+        return Math.max(0, get().discountedSubtotal() - get().codeDiscountAmount());
       },
     }),
     {
@@ -437,7 +500,7 @@ export const useCartStore = create<CartStore>()(
         items: state.items,
         cartId: state.cartId,
         checkoutUrl: state.checkoutUrl,
-        appliedDiscount: state.appliedDiscount,
+        appliedDiscounts: state.appliedDiscounts,
       }),
     }
   )
