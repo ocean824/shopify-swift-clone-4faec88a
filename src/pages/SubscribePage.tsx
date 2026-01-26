@@ -1,10 +1,13 @@
 import { Layout } from '@/components/layout/Layout';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { motion } from 'framer-motion';
-import { Crown, Check, Sparkles } from 'lucide-react';
+import { Crown, Check, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useSearchParams } from 'react-router-dom';
 
 const perks = [
   'Unlimited access to exclusive beat packs',
@@ -17,21 +20,66 @@ const perks = [
 
 const SubscribePage = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      toast({
+        title: "🎉 Welcome to The Pantheon!",
+        description: "Your subscription is now active. Enjoy unlimited access!",
+      });
+    } else if (searchParams.get('canceled') === 'true') {
+      toast({
+        title: "Subscription Canceled",
+        description: "You can subscribe anytime to unlock premium content.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
 
   const pricing = {
     monthly: {
       price: 50,
       period: 'month',
       savings: null,
+      priceId: 'monthly',
     },
     yearly: {
       price: 500,
       period: 'year',
       savings: '~17% off',
+      priceId: 'yearly',
     },
   };
 
   const currentPlan = pricing[billingCycle];
+
+  const handleSubscribe = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+        body: { priceId: currentPlan.priceId },
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start checkout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Layout>
@@ -111,14 +159,20 @@ const SubscribePage = () => {
             </ul>
 
             {/* CTA Button */}
-            <Button asChild size="lg" className="w-full text-lg py-6">
-              <a 
-                href="https://www.sample-society.com/signup" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Join The Pantheon
-              </a>
+            <Button 
+              size="lg" 
+              className="w-full text-lg py-6"
+              onClick={handleSubscribe}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                  Loading...
+                </>
+              ) : (
+                'Join The Pantheon'
+              )}
             </Button>
 
             <p className="mt-4 text-sm text-muted-foreground">
