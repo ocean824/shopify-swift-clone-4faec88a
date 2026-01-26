@@ -14,6 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_accounts: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      code_redemptions: {
+        Row: {
+          code_id: string | null
+          id: string
+          is_revoked: boolean | null
+          purchase_verified: boolean | null
+          redeemed_at: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
+          user_email: string
+        }
+        Insert: {
+          code_id?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          purchase_verified?: boolean | null
+          redeemed_at?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          user_email: string
+        }
+        Update: {
+          code_id?: string | null
+          id?: string
+          is_revoked?: boolean | null
+          purchase_verified?: boolean | null
+          redeemed_at?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_redemptions_code_id_fkey"
+            columns: ["code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discount_codes: {
+        Row: {
+          applies_to: string | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          description: string | null
+          discount_type: string
+          discount_value: number | null
+          grants_pantheon_lifetime: boolean | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          specific_products: string[] | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          applies_to?: string | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          grants_pantheon_lifetime?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          specific_products?: string[] | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          applies_to?: string | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number | null
+          grants_pantheon_lifetime?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          specific_products?: string[] | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       lifetime_access_codes: {
         Row: {
           code_used: string
@@ -187,7 +300,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { user_email: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
