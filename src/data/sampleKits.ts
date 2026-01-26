@@ -56,7 +56,7 @@ export const sampleKits: SampleKit[] = [
     category: 'bundle',
     description: 'Get EVERY Sample Society kit in one massive bundle. Includes all sample packs, drum kits, MIDI files, and stems. Over 2,000+ sounds at an unbeatable price. Limited time offer.',
     artistsLike: ['Travis Scott', 'Don Toliver', 'Drake', 'Metro Boomin'],
-    audioPreviewUrl: undefined, // Bundle - no single preview
+    audioPreviewUrl: `${AUDIO_BASE}/all-kits-bundle-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/47541358330110',
     shopifyWavProductId: 'gid://shopify/Product/9058722447614',
   },
