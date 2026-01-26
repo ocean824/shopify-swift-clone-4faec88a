@@ -1,20 +1,23 @@
 import { Layout } from '@/components/layout/Layout';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { useShopifyProducts } from '@/hooks/useShopifyProducts';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useMemo } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Index = () => {
   // Get all products, then filter on client side
   const { products, isLoading, error } = useShopifyProducts({ limit: 50 });
 
-  // Filter to show only sample kits (Samplesociety vendor, not Printify merch)
+  // Filter to show only sample kits (exclude Printify merch products)
   const sampleKits = useMemo(() => {
     return products.filter(p => 
-      p.node.vendor?.toLowerCase() === 'samplesociety' ||
-      p.node.vendor?.toLowerCase() === 'sample society'
+      p.node.vendor?.toLowerCase() !== 'printify'
     );
   }, [products]);
+
+  // Check if only Printify products were returned (sample kits not published to Online Store)
+  const onlyMerchProducts = products.length > 0 && sampleKits.length === 0;
 
   return (
     <Layout>
@@ -47,6 +50,24 @@ const Index = () => {
         ) : error ? (
           <div className="py-16 text-center">
             <p className="text-destructive">{error}</p>
+          </div>
+        ) : onlyMerchProducts ? (
+          <div className="space-y-6">
+            <Alert variant="default" className="border-primary/50 bg-primary/5">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Sample Kits Not Visible</AlertTitle>
+              <AlertDescription>
+                Your sample kit products need to be published to the "Online Store" sales channel in Shopify Admin. 
+                Go to Products → Select your sample kits → Click "Manage" under Sales channels → Enable "Online Store".
+              </AlertDescription>
+            </Alert>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <span className="text-6xl">🎵</span>
+              <h3 className="mt-4 text-xl font-semibold">Sample kits coming soon!</h3>
+              <p className="mt-2 text-muted-foreground">
+                Check out our merch while you wait, or visit the main site at sample-society.com
+              </p>
+            </div>
           </div>
         ) : (
           <ProductGrid products={sampleKits} isLoading={isLoading} />
