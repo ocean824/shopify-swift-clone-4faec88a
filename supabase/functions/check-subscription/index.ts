@@ -60,6 +60,29 @@ serve(async (req) => {
       });
     }
 
+    // Check for lifetime access via discount code
+    const { data: lifetimeAccess } = await supabaseClient
+      .from('lifetime_access_codes')
+      .select('*')
+      .eq('email', user.email)
+      .eq('is_revoked', false)
+      .maybeSingle();
+
+    if (lifetimeAccess) {
+      logStep("Lifetime access code found", { email: user.email, code: lifetimeAccess.code_used });
+      return new Response(JSON.stringify({
+        subscribed: true,
+        product_id: "lifetime_code",
+        plan: "lifetime",
+        subscription_end: null,
+        is_lifetime_code: true,
+        purchase_verified: lifetimeAccess.purchase_verified,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Regular Stripe subscription check
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
