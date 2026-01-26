@@ -13,7 +13,7 @@ const BUNDLE_EXTERNAL_URL = 'https://my.flowlance.com/samplesociety';
 
 export function MiniPlayer() {
   const navigate = useNavigate();
-  const { currentlyPlaying, play, pause, isPlaying, progress, duration, seek, currentUrl } = useAudio();
+  const { currentlyPlaying, play, pause, isPlaying, progress, duration, seek, currentUrl, playNext, playPrevious } = useAudio();
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
@@ -57,18 +57,17 @@ export function MiniPlayer() {
     }
   };
 
-  const handleRewind = () => {
-    if (duration > 0) {
-      const newTime = Math.max(0, progress - 10);
-      seek(newTime / duration);
+  const handleSkipBack = () => {
+    // If more than 3 seconds in, restart current track; otherwise go to previous
+    if (progress > 3) {
+      seek(0);
+    } else {
+      playPrevious();
     }
   };
 
-  const handleFastForward = () => {
-    if (duration > 0) {
-      const newTime = Math.min(duration, progress + 10);
-      seek(newTime / duration);
-    }
+  const handleSkipForward = () => {
+    playNext();
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -160,13 +159,13 @@ export function MiniPlayer() {
 
               {/* Controls */}
               <div className="flex items-center gap-1 md:gap-2">
-                {/* Rewind */}
+                {/* Skip Back */}
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full hover:bg-primary/10"
-                  onClick={handleRewind}
-                  title="Rewind 10s"
+                  onClick={handleSkipBack}
+                  title="Previous track"
                 >
                   <SkipBack className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                 </Button>
@@ -185,13 +184,13 @@ export function MiniPlayer() {
                   )}
                 </Button>
 
-                {/* Fast Forward */}
+                {/* Skip Forward */}
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full hover:bg-primary/10"
-                  onClick={handleFastForward}
-                  title="Forward 10s"
+                  onClick={handleSkipForward}
+                  title="Next track"
                 >
                   <SkipForward className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                 </Button>
