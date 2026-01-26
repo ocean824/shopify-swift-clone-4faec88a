@@ -39,10 +39,7 @@ export function Header() {
           <img 
             src={logo} 
             alt="Sample Society" 
-            className={cn(
-              "h-10 w-auto transition-all",
-              theme === 'dark' ? "invert" : ""
-            )} 
+            className="h-10 w-auto transition-[filter] duration-0 dark:invert" 
           />
         </Link>
 
