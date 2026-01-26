@@ -1,48 +1,88 @@
-import { Link } from 'react-router-dom';
-import { Instagram, Twitter, Youtube } from 'lucide-react';
-
-const footerLinks = {
-  shop: [
-    { name: 'Sample Kits', href: '/' },
-    { name: 'Drum Kits', href: '/drum-kits' },
-    { name: 'MIDI Kits', href: '/midi-kits' },
-    { name: 'Merch', href: '/merch' },
-    { name: 'All Kits Bundle', href: '/bundle' },
-  ],
-  support: [
-    { name: 'Contact', href: '/contact' },
-    { name: 'Credits', href: '/credits' },
-    { name: 'FAQ', href: '/faq' },
-  ],
-  legal: [
-    { name: 'Terms & License', href: '/terms' },
-    { name: 'Privacy Policy', href: '/privacy' },
-  ],
-};
+import { useState } from 'react';
+import { Instagram, Twitter, Youtube, Mail, ArrowUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const socialLinks = [
   { name: 'Instagram', href: 'https://instagram.com/samplesociety', icon: Instagram },
   { name: 'Twitter', href: 'https://twitter.com/samplesociety', icon: Twitter },
   { name: 'YouTube', href: 'https://youtube.com/samplesociety', icon: Youtube },
+  { name: 'Email', href: 'mailto:contact@samplesociety.com', icon: Mail },
 ];
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    // Simulate subscription
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast.success('Thanks for subscribing!');
+    setEmail('');
+    setPhone('');
+    setIsSubmitting(false);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <footer className="border-t border-border bg-card">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <Link to="/" className="text-xl font-bold uppercase text-foreground">
+    <footer className="border-t border-border bg-background">
+      {/* Stay Updated Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="mx-auto max-w-lg text-center">
+          <h2 className="text-xl font-bold text-foreground">Stay Updated</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Get notified about new releases, sample packs, and exclusive content.
+          </p>
+          
+          <form onSubmit={handleSubscribe} className="mt-6 space-y-3">
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-12 border-border bg-background"
+            />
+            <Input
+              type="tel"
+              placeholder="Phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="h-12 border-border bg-background"
+            />
+            <Button 
+              type="submit" 
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+            </Button>
+          </form>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="border-t border-border bg-card/50">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            {/* Brand Name */}
+            <span className="text-sm font-bold uppercase tracking-[0.3em] text-primary">
               SAMPLE SOCIETY
-            </Link>
-            <p className="mt-4 text-sm text-muted-foreground max-w-sm">
-              Premium sample packs, MIDI kits, and production resources crafted for 
-              the modern music producer. Master use licensed.
-            </p>
+            </span>
             
-            {/* Social Links */}
-            <div className="mt-6 flex gap-4">
+            {/* Social Icons */}
+            <div className="flex items-center gap-4">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
@@ -58,70 +98,23 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Shop Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Shop
-            </h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.shop.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Support Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Support
-            </h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal Links */}
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
-              Legal
-            </h3>
-            <ul className="mt-4 space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-12 border-t border-border pt-8">
-          <p className="text-center text-sm text-muted-foreground">
+          {/* Copyright */}
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             © {new Date().getFullYear()} Sample Society. All rights reserved.
           </p>
         </div>
       </div>
+
+      {/* Back to Top Button */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full border-primary bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"
+        onClick={scrollToTop}
+        aria-label="Back to top"
+      >
+        <ArrowUp className="h-5 w-5" />
+      </Button>
     </footer>
   );
 }
