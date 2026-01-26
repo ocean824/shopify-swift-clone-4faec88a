@@ -12,6 +12,10 @@ import AllKitsBundlePage from "./pages/AllKitsBundlePage";
 import TermsPage from "./pages/TermsPage";
 import CreditsPage from "./pages/CreditsPage";
 import ContactPage from "./pages/ContactPage";
+import BeatsPage from "./pages/BeatsPage";
+import ApplyPage from "./pages/ApplyPage";
+import SocietyPage from "./pages/SocietyPage";
+import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 
@@ -31,7 +35,10 @@ function AppContent() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/credits" element={<CreditsPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/resources" element={<Index />} />
+      <Route path="/beats" element={<BeatsPage />} />
+      <Route path="/apply" element={<ApplyPage />} />
+      <Route path="/society" element={<SocietyPage />} />
+      <Route path="/subscribe" element={<SubscribePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

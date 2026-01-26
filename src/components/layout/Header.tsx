@@ -5,12 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
-import logo from '@/assets/logo.gif';
+import logo from '@/assets/logo-main.webp';
+
 const navigation = [
+  { name: 'BEATS', href: '/beats' },
   { name: 'SAMPLE KITS', href: '/' },
   { name: 'DRUM KITS', href: '/drum-kits' },
   { name: 'MIDI KITS', href: '/midi-kits' },
   { name: 'MERCH', href: '/merch' },
+  { name: 'APPLY', href: '/apply' },
+  { name: 'SOCIETY', href: '/society' },
+  { name: 'SUBSCRIBE', href: '/subscribe' },
   { name: 'CREDITS', href: '/credits' },
   { name: 'TERMS', href: '/terms' },
   { name: 'CONTACT', href: '/contact' },

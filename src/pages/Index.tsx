@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { sampleKits } from '@/data/sampleKits';
-import logo from '@/assets/logo.gif';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { BeamsBackground } from '@/components/effects/BeamsBackground';
+import logo from '@/assets/logo-main.webp';
 
 function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: number }) {
-  const salePercentage = kit.compareAtPrice 
-    ? Math.round(((kit.compareAtPrice - kit.wavPrice) / kit.compareAtPrice) * 100) 
-    : 0;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.4, delay: (index % 4) * 0.1 }}
       className="group"
     >
       <Link to={`/product/${kit.wavHandle}`} className="block">
@@ -23,6 +23,7 @@ function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: numbe
           <img
             src={kit.image}
             alt={kit.title}
+            loading="lazy"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           
@@ -64,16 +65,34 @@ function SampleKitCard({ kit, index }: { kit: typeof sampleKits[0]; index: numbe
   );
 }
 
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="aspect-square w-full rounded-lg" />
+      <Skeleton className="mx-auto h-4 w-3/4" />
+      <Skeleton className="mx-auto h-4 w-1/2" />
+    </div>
+  );
+}
+
 const Index = () => {
+  const { visibleItems, hasMore, isLoading, loaderRef } = useInfiniteScroll({
+    items: sampleKits,
+    initialCount: 10,
+    incrementCount: 5,
+  });
+
   return (
     <Layout>
+      <BeamsBackground />
+      
       {/* Hero Section with Logo */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-background to-card/50 py-16 md:py-24">
+      <section className="relative z-10 overflow-hidden py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
           <motion.img 
             src={logo} 
             alt="Sample Society" 
-            className="mx-auto h-32 w-auto md:h-40"
+            className="mx-auto h-32 w-auto md:h-48 lg:h-56"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -91,7 +110,7 @@ const Index = () => {
       </section>
       
       {/* Products Section */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="relative z-10 container mx-auto px-4 py-12">
         <div className="mb-8 text-center">
           <h2 className="text-2xl font-bold uppercase tracking-tight md:text-3xl">New Releases</h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -100,10 +119,27 @@ const Index = () => {
         </div>
         
         <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {sampleKits.map((kit, index) => (
+          {visibleItems.map((kit, index) => (
             <SampleKitCard key={kit.id} kit={kit} index={index} />
           ))}
+          
+          {/* Loading skeletons */}
+          {isLoading && (
+            <>
+              <LoadingSkeleton />
+              <LoadingSkeleton />
+              <LoadingSkeleton />
+              <LoadingSkeleton />
+            </>
+          )}
         </div>
+        
+        {/* Infinite scroll trigger */}
+        {hasMore && (
+          <div ref={loaderRef} className="mt-8 flex justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        )}
       </section>
     </Layout>
   );
