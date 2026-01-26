@@ -5,6 +5,7 @@ import { Play, Pause, X, Volume2, VolumeX, SkipBack, SkipForward } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useAudio } from './AudioPlayer';
+import { MiniWaveform } from './MiniWaveform';
 import { sampleKits } from '@/data/sampleKits';
 
 export function MiniPlayer() {
@@ -39,10 +40,8 @@ export function MiniPlayer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percentage = (e.clientX - rect.left) / rect.width;
-    seek(Math.max(0, Math.min(1, percentage)));
+  const handleSeek = (percentage: number) => {
+    seek(percentage);
   };
 
   const handlePlayPause = () => {
@@ -110,21 +109,6 @@ export function MiniPlayer() {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur-lg"
         >
-          {/* Progress bar - clickable */}
-          <div 
-            className="absolute top-0 left-0 right-0 h-1 bg-muted cursor-pointer group"
-            onClick={handleSeek}
-          >
-            <div 
-              className="h-full bg-primary transition-all duration-100"
-              style={{ width: `${progressPercentage}%` }}
-            />
-            <div 
-              className="absolute top-1/2 -translate-y-1/2 h-3 w-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{ left: `${progressPercentage}%`, marginLeft: '-6px' }}
-            />
-          </div>
-
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 py-3 md:gap-4">
               {/* Album art - clickable */}
@@ -139,19 +123,30 @@ export function MiniPlayer() {
                 />
               </button>
 
-              {/* Track info */}
-              <div className="flex-1 min-w-0">
-                <button 
-                  onClick={handleImageClick}
-                  className="text-left hover:text-primary transition-colors"
-                >
-                  <h4 className="font-medium text-sm text-foreground truncate">
-                    {playingKit.title}
-                  </h4>
-                </button>
-                <p className="text-xs text-muted-foreground">
-                  {formatTime(progress)} / {formatTime(duration)}
-                </p>
+              {/* Track info + Waveform */}
+              <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <button 
+                    onClick={handleImageClick}
+                    className="text-left hover:text-primary transition-colors truncate"
+                  >
+                    <h4 className="font-medium text-sm text-foreground truncate">
+                      {playingKit.title}
+                    </h4>
+                  </button>
+                  <p className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatTime(progress)} / {formatTime(duration)}
+                  </p>
+                </div>
+                
+                {/* Waveform visualization */}
+                <MiniWaveform
+                  progress={progressPercentage}
+                  duration={duration}
+                  isPlaying={isPlaying(currentlyPlaying)}
+                  onSeek={handleSeek}
+                  audioUrl={currentUrl || playingKit.id}
+                />
               </div>
 
               {/* Controls */}
