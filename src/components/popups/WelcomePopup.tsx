@@ -81,12 +81,14 @@ export function WelcomePopup() {
         >
           <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden w-72">
             {/* Header */}
-            <div className="bg-primary/10 px-3 py-2 flex items-center gap-2 relative">
-              <Gift className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Get 10% Off</span>
+            <div className="bg-primary/10 px-3 py-2 relative">
+              <div className="flex items-center justify-center gap-2">
+                <Gift className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Get 10% Off</span>
+              </div>
               <button
                 onClick={handleClose}
-                className="absolute right-2 p-0.5 rounded hover:bg-background/50 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-background/50 transition-colors"
               >
                 <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
