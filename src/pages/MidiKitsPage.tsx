@@ -1,4 +1,3 @@
-import { useRef, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -11,18 +10,8 @@ import { useAudio } from '@/components/audio/AudioPlayer';
 
 function MidiKitCard({ kit, index }: { kit: SampleKit; index: number }) {
   const { addItem, isLoading: cartLoading, openCart } = useCartStore();
-  const { play, isPlaying, registerAudio, unregisterAudio } = useAudio();
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { play, isPlaying } = useAudio();
   const playing = isPlaying(kit.id);
-
-  useEffect(() => {
-    if (audioRef.current && kit.audioPreviewUrl) {
-      registerAudio(kit.id, audioRef.current);
-    }
-    return () => {
-      unregisterAudio(kit.id);
-    };
-  }, [kit.id, kit.audioPreviewUrl, registerAudio, unregisterAudio]);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -93,9 +82,6 @@ function MidiKitCard({ kit, index }: { kit: SampleKit; index: number }) {
       transition={{ duration: 0.4, delay: (index % 4) * 0.1 }}
       className="group"
     >
-      {kit.audioPreviewUrl && (
-        <audio ref={audioRef} src={kit.audioPreviewUrl} preload="none" />
-      )}
       
       <Link to={`/product/${kit.wavHandle}`} className="block">
         <div className="relative aspect-square overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">

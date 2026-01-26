@@ -9,8 +9,6 @@ interface AudioContextType {
   progress: number;
   duration: number;
   seek: (percentage: number) => void;
-  registerAudio: (id: string, audioRef: HTMLAudioElement) => void;
-  unregisterAudio: (id: string) => void;
 }
 
 const AudioContext = createContext<AudioContextType | null>(null);
@@ -20,104 +18,89 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  
+  // Single persistent audio element
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Pause all other audio elements when one starts playing
-  const pauseAllExcept = useCallback((exceptId: string) => {
-    audioElementsRef.current.forEach((audio, id) => {
-      if (id !== exceptId && !audio.paused) {
-        audio.pause();
-      }
-    });
-  }, []);
-
-  const registerAudio = useCallback((id: string, audioRef: HTMLAudioElement) => {
-    audioElementsRef.current.set(id, audioRef);
+  // Create audio element on mount
+  useEffect(() => {
+    audioRef.current = new Audio();
+    audioRef.current.preload = 'auto';
     
-    // Add play event listener to auto-pause others
-    const handlePlay = () => {
-      pauseAllExcept(id);
-      setCurrentlyPlaying(id);
-    };
+    const audio = audioRef.current;
     
-    const handlePause = () => {
-      if (currentlyPlaying === id) {
-        setCurrentlyPlaying(null);
-      }
+    const handleTimeUpdate = () => {
+      setProgress(audio.currentTime);
+      setDuration(audio.duration || 0);
     };
     
     const handleEnded = () => {
-      if (currentlyPlaying === id) {
-        setCurrentlyPlaying(null);
-        setProgress(0);
-      }
+      setCurrentlyPlaying(null);
+      setProgress(0);
     };
     
-    const handleTimeUpdate = () => {
-      if (currentlyPlaying === id) {
-        setProgress(audioRef.currentTime);
-        setDuration(audioRef.duration || 0);
-      }
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
     };
     
-    audioRef.addEventListener('play', handlePlay);
-    audioRef.addEventListener('pause', handlePause);
-    audioRef.addEventListener('ended', handleEnded);
-    audioRef.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     
     return () => {
-      audioRef.removeEventListener('play', handlePlay);
-      audioRef.removeEventListener('pause', handlePause);
-      audioRef.removeEventListener('ended', handleEnded);
-      audioRef.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.pause();
+      audio.src = '';
     };
-  }, [currentlyPlaying, pauseAllExcept]);
-
-  const unregisterAudio = useCallback((id: string) => {
-    audioElementsRef.current.delete(id);
   }, []);
 
   const play = useCallback((id: string, url: string) => {
-    // Pause all other audio first
-    pauseAllExcept(id);
-    
-    const audio = audioElementsRef.current.get(id);
+    const audio = audioRef.current;
     if (!audio) return;
 
-    if (currentlyPlaying === id) {
+    // If clicking the same track that's playing, toggle pause
+    if (currentlyPlaying === id && !audio.paused) {
       audio.pause();
       setCurrentlyPlaying(null);
       return;
     }
 
-    if (audio.src !== url) {
-      audio.src = url;
+    // If same track but paused, resume
+    if (currentlyPlaying === id && currentUrl === url) {
+      audio.play().catch(console.error);
+      setCurrentlyPlaying(id);
+      return;
     }
 
+    // New track - load and play
+    audio.src = url;
     audio.play().catch(console.error);
     setCurrentlyPlaying(id);
     setCurrentUrl(url);
-  }, [currentlyPlaying, pauseAllExcept]);
+    setProgress(0);
+  }, [currentlyPlaying, currentUrl]);
 
   const pause = useCallback(() => {
-    if (currentlyPlaying) {
-      const audio = audioElementsRef.current.get(currentlyPlaying);
-      if (audio) {
-        audio.pause();
-      }
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
     }
     setCurrentlyPlaying(null);
+  }, []);
+
+  const isPlaying = useCallback((id: string) => {
+    const audio = audioRef.current;
+    return currentlyPlaying === id && audio && !audio.paused;
   }, [currentlyPlaying]);
 
-  const isPlaying = useCallback((id: string) => currentlyPlaying === id, [currentlyPlaying]);
-
   const seek = useCallback((percentage: number) => {
-    if (!currentlyPlaying) return;
-    const audio = audioElementsRef.current.get(currentlyPlaying);
+    const audio = audioRef.current;
     if (audio && audio.duration) {
       audio.currentTime = percentage * audio.duration;
     }
-  }, [currentlyPlaying]);
+  }, []);
 
   return (
     <AudioContext.Provider value={{ 
@@ -128,9 +111,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       isPlaying, 
       progress, 
       duration,
-      seek,
-      registerAudio,
-      unregisterAudio
+      seek
     }}>
       {children}
     </AudioContext.Provider>

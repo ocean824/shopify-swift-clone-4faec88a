@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useRef, useEffect, useId } from 'react';
+import { useState, useEffect } from 'react';
 import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
@@ -15,40 +15,23 @@ import { useDiscountStore } from '@/stores/discountStore';
 
 // Global Audio Player for Product Page with auto-pause
 function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
-  const playerId = useId();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const { registerAudio, unregisterAudio, isPlaying, play } = useAudio();
-  const [progress, setProgress] = useState(0);
+  const playerId = title; // Use title as unique ID for this player
+  const { isPlaying, play, progress, duration, seek } = useAudio();
   const [bars] = useState(() => 
     Array.from({ length: 50 }, () => Math.random() * 0.6 + 0.2)
   );
-
-  useEffect(() => {
-    if (audioRef.current && audioUrl) {
-      registerAudio(playerId, audioRef.current);
-    }
-    return () => {
-      unregisterAudio(playerId);
-    };
-  }, [playerId, audioUrl, registerAudio, unregisterAudio]);
 
   const togglePlay = () => {
     if (!audioUrl) return;
     play(playerId, audioUrl);
   };
 
-  const handleTimeUpdate = () => {
-    if (!audioRef.current) return;
-    const prog = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-    setProgress(prog || 0);
-  };
-
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current || !audioRef.current.duration) return;
+    if (!duration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = x / rect.width;
-    audioRef.current.currentTime = percentage * audioRef.current.duration;
+    seek(percentage);
   };
 
   if (!audioUrl) {
@@ -70,16 +53,10 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
   }
 
   const playing = isPlaying(playerId);
+  const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-card/50 p-4">
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        onTimeUpdate={handleTimeUpdate}
-        preload="metadata"
-      />
-      
       <Button
         variant="outline"
         size="icon"
@@ -98,7 +75,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
         onClick={handleClick}
       >
         {bars.map((height, i) => {
-          const isActive = (i / bars.length) * 100 < progress;
+          const isActive = (i / bars.length) * 100 < progressPercent;
           return (
             <div
               key={i}
@@ -118,17 +95,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
 // Bundle Item Audio Player with global audio control
 function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
   const playerId = `bundle-${kitId}`;
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const { registerAudio, unregisterAudio, isPlaying, play } = useAudio();
-
-  useEffect(() => {
-    if (audioRef.current && audioUrl) {
-      registerAudio(playerId, audioRef.current);
-    }
-    return () => {
-      unregisterAudio(playerId);
-    };
-  }, [playerId, audioUrl, registerAudio, unregisterAudio]);
+  const { isPlaying, play } = useAudio();
 
   const togglePlay = () => {
     if (!audioUrl) return;
@@ -146,25 +113,18 @@ function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: strin
   const playing = isPlaying(playerId);
 
   return (
-    <>
-      <audio
-        ref={audioRef}
-        src={audioUrl}
-        preload="none"
-      />
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 flex-shrink-0"
-        onClick={togglePlay}
-      >
-        {playing ? (
-          <Pause className="h-4 w-4" />
-        ) : (
-          <Play className="h-4 w-4 ml-0.5" />
-        )}
-      </Button>
-    </>
+    <Button
+      variant="ghost"
+      size="icon"
+      className="h-8 w-8 flex-shrink-0"
+      onClick={togglePlay}
+    >
+      {playing ? (
+        <Pause className="h-4 w-4" />
+      ) : (
+        <Play className="h-4 w-4 ml-0.5" />
+      )}
+    </Button>
   );
 }
 
