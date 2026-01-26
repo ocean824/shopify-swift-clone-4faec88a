@@ -1,39 +1,49 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, X, User } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ShoppingCart, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Shop All', href: '/' },
-  { name: 'Sample Kits', href: '/collections/sample-kits' },
-  { name: 'MIDI Kits', href: '/collections/midi-kits' },
-  { name: 'Contact', href: '/contact' },
+  { name: 'HOME', href: '/' },
+  { name: 'ALL PRODUCTS', href: '/products' },
+  { name: 'SAMPLE PACKS', href: '/collections/sample-packs' },
+  { name: 'MIDI KITS', href: '/collections/midi-kits' },
+  { name: 'DRUM KITS', href: '/collections/drum-kits' },
+  { name: 'BUNDLE BUILDER', href: '/bundle', highlight: true },
 ];
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openCart, totalItems } = useCartStore();
   const itemCount = totalItems();
+  const location = useLocation();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight text-primary">
-            YOUR BRAND
+          <span className="text-xl font-bold tracking-tight text-foreground uppercase">
+            NIKO THE GREAT
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex md:items-center md:gap-8">
+        <div className="hidden lg:flex lg:items-center lg:gap-6">
           {navigation.map((item) => (
             <Link
               key={item.name}
               to={item.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                "text-xs font-semibold uppercase tracking-wider transition-colors",
+                item.highlight 
+                  ? "text-primary hover:text-primary/80" 
+                  : "text-muted-foreground hover:text-foreground",
+                location.pathname === item.href && "text-foreground"
+              )}
             >
               {item.name}
             </Link>
@@ -41,11 +51,7 @@ export function Header() {
         </div>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex">
-            <User className="h-5 w-5" />
-          </Button>
-          
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
@@ -54,9 +60,13 @@ export function Header() {
           >
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+              >
                 {itemCount > 99 ? '99+' : itemCount}
-              </span>
+              </motion.span>
             )}
           </Button>
 
@@ -64,7 +74,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -77,32 +87,35 @@ export function Header() {
       </nav>
 
       {/* Mobile Navigation */}
-      <div
-        className={cn(
-          'md:hidden',
-          mobileMenuOpen ? 'block' : 'hidden'
-        )}
-      >
-        <div className="border-t border-border bg-background px-4 py-4">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className="block py-3 text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {item.name}
-            </Link>
-          ))}
-          <Link
-            to="/account"
-            className="block py-3 text-base font-medium text-muted-foreground transition-colors hover:text-foreground"
-            onClick={() => setMobileMenuOpen(false)}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="lg:hidden overflow-hidden"
           >
-            Account
-          </Link>
-        </div>
-      </div>
+            <div className="border-t border-border bg-background px-4 py-4">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "block py-3 text-sm font-semibold uppercase tracking-wider transition-colors",
+                    item.highlight 
+                      ? "text-primary" 
+                      : "text-muted-foreground hover:text-foreground",
+                    location.pathname === item.href && "text-foreground"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

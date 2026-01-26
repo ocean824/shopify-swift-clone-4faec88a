@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Hero } from '@/components/home/Hero';
 import { ProductGrid } from '@/components/products/ProductGrid';
+import { FeaturedCategories } from '@/components/home/FeaturedCategories';
+import { BundleCTA } from '@/components/home/BundleCTA';
 
 // Sample products for demo - these will come from Shopify when connected
 const sampleProducts = [
@@ -9,7 +10,7 @@ const sampleProducts = [
     id: '1',
     handle: 'sample-kit-1',
     title: 'Premium Sample Kit Vol. 1',
-    productType: 'Sample Kit',
+    productType: 'Sample Pack',
     price: 24.99,
     compareAtPrice: 29.99,
     image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500&h=500&fit=crop',
@@ -49,7 +50,7 @@ const sampleProducts = [
     id: '5',
     handle: 'sample-kit-2',
     title: 'Lo-Fi Dreams Sample Pack',
-    productType: 'Sample Kit',
+    productType: 'Sample Pack',
     price: 24.99,
     compareAtPrice: 34.99,
     image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop',
@@ -79,7 +80,7 @@ const sampleProducts = [
     id: '8',
     handle: 'bass-collection',
     title: '808 Bass Collection',
-    productType: 'Bass Kit',
+    productType: 'Drum Kit',
     price: 12.99,
     compareAtPrice: null,
     image: 'https://images.unsplash.com/photo-1571974599782-87624638275e?w=500&h=500&fit=crop',
@@ -88,48 +89,27 @@ const sampleProducts = [
 ];
 
 const Index = () => {
-  const [products, setProducts] = useState(sampleProducts);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // TODO: Replace with actual Shopify product fetch when connected
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const data = await getProducts();
-  //       setProducts(data.map(p => ({
-  //         id: p.id,
-  //         handle: p.handle,
-  //         title: p.title,
-  //         productType: p.productType,
-  //         price: parseFloat(p.priceRange.minVariantPrice.amount),
-  //         compareAtPrice: parseFloat(p.compareAtPriceRange.minVariantPrice.amount) || null,
-  //         image: p.featuredImage?.url || null,
-  //         variantId: p.variants.edges[0]?.node.id || '',
-  //       })));
-  //     } catch (error) {
-  //       console.error('Failed to fetch products:', error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   fetchProducts();
-  // }, []);
+  const products = sampleProducts;
+  const isLoading = false;
 
   return (
     <Layout>
       <Hero />
       
+      <FeaturedCategories />
+      
       <section className="container mx-auto px-4 py-16">
-        <div className="mb-10">
-          <h2 className="text-3xl font-bold tracking-tight">All Products</h2>
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold uppercase tracking-tight">Latest Releases</h2>
           <p className="mt-2 text-muted-foreground">
-            Browse our complete collection of premium digital products
+            Check out our newest sample packs and MIDI kits
           </p>
         </div>
         
         <ProductGrid products={products} isLoading={isLoading} />
       </section>
+
+      <BundleCTA />
     </Layout>
   );
 };
