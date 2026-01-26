@@ -254,7 +254,7 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
                 </span>
               )}
               {kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice && (
-                <Badge className="bg-destructive text-destructive-foreground">
+                <Badge className="bg-primary text-primary-foreground">
                   {Math.round((1 - kit.wavPrice / kit.compareAtPrice) * 100)}% OFF
                 </Badge>
               )}
