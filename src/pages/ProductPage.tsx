@@ -1,69 +1,93 @@
-import { useParams } from 'react-router-dom';
-import { useState } from 'react';
-import { ShoppingCart, Minus, Plus, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { ShoppingCart, Minus, Plus, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
-
-// Sample product data - will come from Shopify when connected
-const sampleProduct = {
-  id: '1',
-  handle: 'sample-kit-1',
-  title: 'Premium Sample Kit Vol. 1',
-  description: 'A comprehensive collection of high-quality samples perfect for modern music production. This kit includes 100+ sounds ranging from crisp drums to atmospheric textures, all meticulously crafted to inspire your next hit.',
-  productType: 'Sample Kit',
-  price: 24.99,
-  compareAtPrice: 29.99,
-  images: [
-    'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=800&fit=crop',
-  ],
-  variantId: 'variant-1',
-  features: [
-    '100+ Premium Samples',
-    'Royalty-Free License',
-    '24-bit WAV Quality',
-    'Instant Download',
-    'Compatible with all DAWs',
-  ],
-};
+import { getProductByHandle, ShopifyProductNode } from '@/lib/shopify';
 
 export default function ProductPage() {
   const { handle } = useParams<{ handle: string }>();
+  const [product, setProduct] = useState<ShopifyProductNode | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const { addItem } = useCartStore();
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const { addItem, isLoading: cartLoading } = useCartStore();
 
-  // TODO: Fetch product by handle from Shopify
-  const product = sampleProduct;
+  useEffect(() => {
+    async function fetchProduct() {
+      if (!handle) return;
+      setIsLoading(true);
+      try {
+        const data = await getProductByHandle(handle);
+        setProduct(data);
+      } catch (error) {
+        console.error('Failed to fetch product:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchProduct();
+  }, [handle]);
 
-  const isOnSale = product.compareAtPrice && product.compareAtPrice > product.price;
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto flex min-h-[50vh] items-center justify-center px-4 py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8 text-center">
+          <h1 className="text-2xl font-bold">Product not found</h1>
+          <Link to="/" className="mt-4 inline-block text-primary hover:underline">
+            Back to Home
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  const images = product.images?.edges?.map((e) => e.node) || [];
+  const variants = product.variants?.edges?.map((e) => e.node) || [];
+  const selectedVariant = variants[selectedVariantIndex] || variants[0];
+  
+  const price = selectedVariant ? parseFloat(selectedVariant.price.amount) : 0;
+  const compareAtPrice = selectedVariant?.compareAtPrice 
+    ? parseFloat(selectedVariant.compareAtPrice.amount) 
+    : 0;
+  
+  const isOnSale = compareAtPrice > 0 && compareAtPrice > price;
   const salePercentage = isOnSale
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
     : 0;
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: selectedVariant?.price.currencyCode || 'USD',
     }).format(amount);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
+    
     for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        variantId: product.variantId,
-        productId: product.id,
-        title: product.title,
-        variantTitle: 'Default Title',
-        price: product.price,
-        compareAtPrice: product.compareAtPrice || null,
-        image: product.images[0] || null,
-        handle: product.handle,
+      await addItem({
+        product: { node: product },
+        variantId: selectedVariant.id,
+        variantTitle: selectedVariant.title,
+        price: selectedVariant.price,
+        quantity: 1,
+        selectedOptions: selectedVariant.selectedOptions || [],
       });
     }
   };
@@ -87,30 +111,36 @@ export default function ProductPage() {
               key={selectedImage}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="aspect-square overflow-hidden rounded-xl bg-muted"
+              className="aspect-square overflow-hidden rounded-xl bg-card border border-border"
             >
-              <img
-                src={product.images[selectedImage]}
-                alt={product.title}
-                className="h-full w-full object-cover"
-              />
+              {images[selectedImage] ? (
+                <img
+                  src={images[selectedImage].url}
+                  alt={images[selectedImage].altText || product.title}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-muted">
+                  <span className="text-6xl text-muted-foreground/30">📦</span>
+                </div>
+              )}
             </motion.div>
             
-            {product.images.length > 1 && (
-              <div className="flex gap-4">
-                {product.images.map((image, index) => (
+            {images.length > 1 && (
+              <div className="flex gap-4 overflow-x-auto">
+                {images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square w-20 overflow-hidden rounded-lg border-2 transition-colors ${
+                    className={`aspect-square w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
                       selectedImage === index
                         ? 'border-primary'
                         : 'border-transparent hover:border-muted-foreground/50'
                     }`}
                   >
                     <img
-                      src={image}
-                      alt={`${product.title} ${index + 1}`}
+                      src={image.url}
+                      alt={image.altText || `${product.title} ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
                   </button>
@@ -133,26 +163,46 @@ export default function ProductPage() {
             <h1 className="mt-4 text-3xl font-bold md:text-4xl">{product.title}</h1>
 
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="text-3xl font-bold">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold">{formatPrice(price)}</span>
               {isOnSale && (
                 <span className="text-xl text-muted-foreground line-through">
-                  {formatPrice(product.compareAtPrice!)}
+                  {formatPrice(compareAtPrice)}
                 </span>
               )}
             </div>
 
             <p className="mt-6 text-muted-foreground">{product.description}</p>
 
-            {/* Features */}
-            {product.features && (
-              <ul className="mt-6 space-y-2">
-                {product.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2 text-sm">
-                    <span className="text-primary">✓</span>
-                    {feature}
-                  </li>
+            {/* Variant Selection */}
+            {variants.length > 1 && (
+              <div className="mt-6 space-y-4">
+                {product.options?.map((option) => (
+                  <div key={option.name}>
+                    <label className="text-sm font-medium">{option.name}</label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {option.values.map((value) => {
+                        const variantIndex = variants.findIndex((v) =>
+                          v.selectedOptions?.some(
+                            (o) => o.name === option.name && o.value === value
+                          )
+                        );
+                        const isSelected = selectedVariantIndex === variantIndex;
+                        
+                        return (
+                          <Button
+                            key={value}
+                            variant={isSelected ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setSelectedVariantIndex(variantIndex)}
+                          >
+                            {value}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
 
             {/* Quantity & Add to Cart */}
@@ -179,9 +229,18 @@ export default function ProductPage() {
                 size="lg"
                 className="flex-1 gap-2"
                 onClick={handleAddToCart}
+                disabled={cartLoading || !selectedVariant?.availableForSale}
               >
-                <ShoppingCart className="h-5 w-5" />
-                Add to Cart
+                {cartLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : !selectedVariant?.availableForSale ? (
+                  'Sold Out'
+                ) : (
+                  <>
+                    <ShoppingCart className="h-5 w-5" />
+                    Add to Cart
+                  </>
+                )}
               </Button>
             </div>
           </div>

@@ -7,8 +7,26 @@ import Index from "./pages/Index";
 import ProductPage from "./pages/ProductPage";
 import BundlePage from "./pages/BundlePage";
 import NotFound from "./pages/NotFound";
+import { useCartSync } from "./hooks/useCartSync";
 
 const queryClient = new QueryClient();
+
+function AppContent() {
+  // Sync cart with Shopify on page load and visibility change
+  useCartSync();
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/product/:handle" element={<ProductPage />} />
+      <Route path="/bundle" element={<BundlePage />} />
+      <Route path="/products" element={<Index />} />
+      <Route path="/collections/:collection" element={<Index />} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -16,15 +34,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/product/:handle" element={<ProductPage />} />
-          <Route path="/bundle" element={<BundlePage />} />
-          <Route path="/products" element={<Index />} />
-          <Route path="/collections/:collection" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

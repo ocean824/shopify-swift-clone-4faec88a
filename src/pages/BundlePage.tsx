@@ -1,106 +1,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, ArrowRight, X, Check, ShoppingCart } from 'lucide-react';
+import { Package, X, Check, ShoppingCart, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useBundleStore } from '@/stores/bundleStore';
 import { useCartStore } from '@/stores/cartStore';
+import { useShopifyProducts } from '@/hooks/useShopifyProducts';
+import { ShopifyProduct } from '@/lib/shopify';
 import { cn } from '@/lib/utils';
 
-// Sample products for the bundle builder
-const bundleProducts = [
-  {
-    id: '1',
-    handle: 'sample-kit-1',
-    title: 'Premium Sample Kit Vol. 1',
-    productType: 'Sample Pack',
-    price: 24.99,
-    image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500&h=500&fit=crop',
-    variantId: 'variant-1',
-  },
-  {
-    id: '2',
-    handle: 'midi-pack-1',
-    title: 'MIDI Melodies Pack',
-    productType: 'MIDI Kit',
-    price: 19.99,
-    image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&h=500&fit=crop',
-    variantId: 'variant-2',
-  },
-  {
-    id: '3',
-    handle: 'loop-collection',
-    title: 'Ambient Loop Collection',
-    productType: 'Loop Kit',
-    price: 29.99,
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop',
-    variantId: 'variant-3',
-  },
-  {
-    id: '4',
-    handle: 'drum-kit-1',
-    title: 'Hard Hitting Drums Vol. 1',
-    productType: 'Drum Kit',
-    price: 14.99,
-    image: 'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=500&h=500&fit=crop',
-    variantId: 'variant-4',
-  },
-  {
-    id: '5',
-    handle: 'sample-kit-2',
-    title: 'Lo-Fi Dreams Sample Pack',
-    productType: 'Sample Pack',
-    price: 24.99,
-    image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop',
-    variantId: 'variant-5',
-  },
-  {
-    id: '6',
-    handle: 'preset-pack',
-    title: 'Synth Preset Collection',
-    productType: 'Preset Pack',
-    price: 39.99,
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=500&fit=crop',
-    variantId: 'variant-6',
-  },
-  {
-    id: '7',
-    handle: 'vocal-samples',
-    title: 'Vocal Chops & Phrases',
-    productType: 'Vocal Kit',
-    price: 19.99,
-    image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=500&h=500&fit=crop',
-    variantId: 'variant-7',
-  },
-  {
-    id: '8',
-    handle: 'bass-collection',
-    title: '808 Bass Collection',
-    productType: 'Drum Kit',
-    price: 12.99,
-    image: 'https://images.unsplash.com/photo-1571974599782-87624638275e?w=500&h=500&fit=crop',
-    variantId: 'variant-8',
-  },
-  {
-    id: '9',
-    handle: 'trap-melodies',
-    title: 'Trap Melodies Vol. 2',
-    productType: 'MIDI Kit',
-    price: 22.99,
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop',
-    variantId: 'variant-9',
-  },
-  {
-    id: '10',
-    handle: 'fx-collection',
-    title: 'FX & Transitions Pack',
-    productType: 'Sample Pack',
-    price: 17.99,
-    image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500&h=500&fit=crop',
-    variantId: 'variant-10',
-  },
-];
+interface BundleProduct extends ShopifyProduct {
+  // Extended with selection state
+}
 
 const formatPrice = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -110,70 +20,76 @@ const formatPrice = (amount: number) => {
 };
 
 export default function BundlePage() {
-  const {
-    selectedProducts,
-    addProduct,
-    removeProduct,
-    isSelected,
-    bundleSize,
-    discountPercentage,
-    originalTotal,
-    discountedTotal,
-    savings,
-    clearBundle,
-  } = useBundleStore();
+  const { products, isLoading: productsLoading } = useShopifyProducts({ limit: 50 });
+  const { addItem, openCart, isLoading: cartLoading } = useCartStore();
   
-  const { addItem, openCart } = useCartStore();
+  const [selectedProducts, setSelectedProducts] = useState<ShopifyProduct[]>([]);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const currentSize = bundleSize();
-  const discount = discountPercentage();
+  const currentSize = selectedProducts.length;
   const canAddMore = currentSize < 5;
 
-  const handleToggleProduct = (product: typeof bundleProducts[0]) => {
-    if (isSelected(product.id)) {
-      removeProduct(product.id);
+  const getDiscountPercentage = (size: number) => {
+    if (size >= 5) return 40;
+    if (size >= 3) return 25;
+    return 0;
+  };
+
+  const discount = getDiscountPercentage(currentSize);
+
+  const originalTotal = selectedProducts.reduce((total, p) => {
+    const price = parseFloat(p.node.priceRange.minVariantPrice.amount);
+    return total + price;
+  }, 0);
+
+  const discountedTotal = originalTotal * (1 - discount / 100);
+  const savings = originalTotal - discountedTotal;
+
+  const isSelected = (productId: string) => 
+    selectedProducts.some((p) => p.node.id === productId);
+
+  const handleToggleProduct = (product: ShopifyProduct) => {
+    if (isSelected(product.node.id)) {
+      setSelectedProducts((prev) => prev.filter((p) => p.node.id !== product.node.id));
     } else if (canAddMore) {
-      addProduct({
-        id: product.id,
-        variantId: product.variantId,
-        handle: product.handle,
-        title: product.title,
-        price: product.price,
-        image: product.image,
-        productType: product.productType,
-      });
+      setSelectedProducts((prev) => [...prev, product]);
     }
   };
 
-  const handleAddBundleToCart = () => {
+  const handleRemoveProduct = (productId: string) => {
+    setSelectedProducts((prev) => prev.filter((p) => p.node.id !== productId));
+  };
+
+  const handleAddBundleToCart = async () => {
     if (currentSize < 3) return;
     
     setIsAddingToCart(true);
     
-    // Calculate the discounted price per item
     const discountMultiplier = 1 - discount / 100;
     
-    selectedProducts.forEach((product) => {
-      addItem({
-        id: product.id,
-        variantId: product.variantId,
-        productId: product.id,
-        title: product.title,
+    for (const product of selectedProducts) {
+      const variant = product.node.variants?.edges?.[0]?.node;
+      if (!variant) continue;
+      
+      const originalPrice = parseFloat(variant.price.amount);
+      const discountedPrice = originalPrice * discountMultiplier;
+      
+      await addItem({
+        product,
+        variantId: variant.id,
         variantTitle: `Bundle (${discount}% OFF)`,
-        price: product.price * discountMultiplier,
-        compareAtPrice: product.price,
-        image: product.image,
-        handle: product.handle,
+        price: {
+          amount: discountedPrice.toFixed(2),
+          currencyCode: variant.price.currencyCode,
+        },
+        quantity: 1,
+        selectedOptions: variant.selectedOptions || [],
       });
-    });
+    }
     
-    clearBundle();
-    
-    setTimeout(() => {
-      setIsAddingToCart(false);
-      openCart();
-    }, 500);
+    setSelectedProducts([]);
+    setIsAddingToCart(false);
+    openCart();
   };
 
   return (
@@ -244,56 +160,72 @@ export default function BundlePage() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Product Grid */}
           <div className="lg:col-span-2">
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-              {bundleProducts.map((product) => {
-                const selected = isSelected(product.id);
-                const disabled = !selected && !canAddMore;
+            {productsLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : products.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-muted-foreground">No products found</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {products.map((product) => {
+                  const selected = isSelected(product.node.id);
+                  const disabled = !selected && !canAddMore;
+                  const image = product.node.images?.edges?.[0]?.node;
+                  const price = parseFloat(product.node.priceRange.minVariantPrice.amount);
 
-                return (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    whileHover={{ scale: disabled ? 1 : 1.02 }}
-                    className={cn(
-                      "group cursor-pointer rounded-lg border bg-card transition-all",
-                      selected ? "border-primary ring-2 ring-primary/50" : "border-border",
-                      disabled && "cursor-not-allowed opacity-50"
-                    )}
-                    onClick={() => !disabled && handleToggleProduct(product)}
-                  >
-                    <div className="relative aspect-square overflow-hidden rounded-t-lg">
-                      {product.image && (
-                        <img
-                          src={product.image}
-                          alt={product.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
+                  return (
+                    <motion.div
+                      key={product.node.id}
+                      layout
+                      whileHover={{ scale: disabled ? 1 : 1.02 }}
+                      className={cn(
+                        "group cursor-pointer rounded-lg border bg-card transition-all",
+                        selected ? "border-primary ring-2 ring-primary/50" : "border-border",
+                        disabled && "cursor-not-allowed opacity-50"
                       )}
-                      
-                      {selected && (
-                        <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                          <Check className="h-5 w-5" />
-                        </div>
-                      )}
-                    </div>
+                      onClick={() => !disabled && handleToggleProduct(product)}
+                    >
+                      <div className="relative aspect-square overflow-hidden rounded-t-lg">
+                        {image ? (
+                          <img
+                            src={image.url}
+                            alt={image.altText || product.node.title}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-muted">
+                            <span className="text-4xl text-muted-foreground/30">📦</span>
+                          </div>
+                        )}
+                        
+                        {selected && (
+                          <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="p-4">
-                      {product.productType && (
-                        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                          {product.productType}
-                        </span>
-                      )}
-                      <h3 className="mt-1 font-semibold text-foreground line-clamp-2 text-sm">
-                        {product.title}
-                      </h3>
-                      <p className="mt-2 text-lg font-bold text-foreground">
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
+                      <div className="p-4">
+                        {product.node.productType && (
+                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            {product.node.productType}
+                          </span>
+                        )}
+                        <h3 className="mt-1 font-semibold text-foreground line-clamp-2 text-sm">
+                          {product.node.title}
+                        </h3>
+                        <p className="mt-2 text-lg font-bold text-foreground">
+                          {formatPrice(price)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Bundle Summary */}
@@ -308,37 +240,42 @@ export default function BundlePage() {
                       Select products to start building your bundle
                     </p>
                   ) : (
-                    selectedProducts.map((product) => (
-                      <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        className="flex items-center gap-3"
-                      >
-                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                          {product.image && (
-                            <img
-                              src={product.image}
-                              alt={product.title}
-                              className="h-full w-full object-cover"
-                            />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{product.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatPrice(product.price)}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => removeProduct(product.id)}
-                          className="text-muted-foreground hover:text-foreground"
+                    selectedProducts.map((product) => {
+                      const image = product.node.images?.edges?.[0]?.node;
+                      const price = parseFloat(product.node.priceRange.minVariantPrice.amount);
+                      
+                      return (
+                        <motion.div
+                          key={product.node.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className="flex items-center gap-3"
                         >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </motion.div>
-                    ))
+                          <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                            {image && (
+                              <img
+                                src={image.url}
+                                alt={product.node.title}
+                                className="h-full w-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium">{product.node.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatPrice(price)}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveProduct(product.node.id)}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </motion.div>
+                      );
+                    })
                   )}
                 </AnimatePresence>
               </div>
@@ -350,30 +287,30 @@ export default function BundlePage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Subtotal</span>
-                      <span className="line-through">{formatPrice(originalTotal())}</span>
+                      <span className="line-through">{formatPrice(originalTotal)}</span>
                     </div>
                     
                     {discount > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-primary">Bundle Discount ({discount}%)</span>
-                        <span className="text-primary">-{formatPrice(savings())}</span>
+                        <span className="text-primary">-{formatPrice(savings)}</span>
                       </div>
                     )}
                     
                     <div className="flex justify-between text-lg font-bold">
                       <span>Total</span>
-                      <span>{formatPrice(discountedTotal())}</span>
+                      <span>{formatPrice(discountedTotal)}</span>
                     </div>
                   </div>
 
                   <Button
                     className="mt-6 w-full gap-2"
                     size="lg"
-                    disabled={currentSize < 3 || isAddingToCart}
+                    disabled={currentSize < 3 || isAddingToCart || cartLoading}
                     onClick={handleAddBundleToCart}
                   >
-                    {isAddingToCart ? (
-                      <>Adding...</>
+                    {isAddingToCart || cartLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : currentSize < 3 ? (
                       <>Select {3 - currentSize} more for 25% off</>
                     ) : (
