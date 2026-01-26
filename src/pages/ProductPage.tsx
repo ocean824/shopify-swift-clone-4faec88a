@@ -648,28 +648,6 @@ export default function ProductPage() {
           </motion.div>
         </div>
 
-        {/* Stay Updated Newsletter Section */}
-        <section className="mt-20 text-center max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-2">Stay Updated</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Get notified about new releases, sample packs, and exclusive content.
-          </p>
-          <div className="space-y-3">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="tel"
-              placeholder="Phone number"
-              className="w-full px-4 py-3 rounded-lg border border-border bg-card/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6">
-              Subscribe
-            </Button>
-          </div>
-        </section>
       </div>
     </Layout>
   );
