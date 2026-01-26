@@ -267,12 +267,14 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
 }
 
 const Index = () => {
-  // Separate bundle from other products
+  // Featured bundle (shown separately at top)
   const allKitsBundle = sampleKits.find(kit => kit.id === 'all-kits-bundle-2025');
-  const otherKits = sampleKits.filter(kit => kit.id !== 'all-kits-bundle-2025');
+  
+  // Only show sample-kit category on this page (exclude drum-kits, midi-kits, bundles)
+  const sampleKitsOnly = sampleKits.filter(kit => kit.category === 'sample-kit');
 
   const { visibleItems, hasMore, isLoading, loaderRef } = useInfiniteScroll({
-    items: otherKits,
+    items: sampleKitsOnly,
     initialCount: 12,
     incrementCount: 4,
   });
