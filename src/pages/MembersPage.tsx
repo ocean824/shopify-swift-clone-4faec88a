@@ -18,22 +18,23 @@ interface Purchase {
   email: string;
 }
 
-// Pantheon exclusive content
-const pantheonContent = [
-  { id: 1, title: 'Exclusive Beat Pack Vol. 1', type: 'Beats', downloadUrl: '#' },
-  { id: 2, title: 'Members-Only Sample Kit', type: 'Samples', downloadUrl: '#' },
-  { id: 3, title: 'Premium CST Collection', type: 'CST', downloadUrl: '#' },
-  { id: 4, title: 'Collab Placement Pack', type: 'Collab', downloadUrl: '#' },
-  { id: 5, title: 'VST Essentials Bundle', type: 'VST', downloadUrl: '#' },
-  { id: 6, title: 'Bi-Weekly Drop: January', type: 'New', downloadUrl: '#' },
-];
+interface PantheonContent {
+  id: string;
+  title: string;
+  type: string;
+  description: string | null;
+  file_path: string;
+  external_url: string | null;
+}
 
 const MembersPage = () => {
   const { user, loading, subscription, signOut, checkSubscription } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [pantheonContent, setPantheonContent] = useState<PantheonContent[]>([]);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -45,8 +46,11 @@ const MembersPage = () => {
   useEffect(() => {
     if (user) {
       fetchPurchases();
+      if (subscription.subscribed) {
+        fetchPantheonContent();
+      }
     }
-  }, [user]);
+  }, [user, subscription.subscribed]);
 
   const fetchPurchases = async () => {
     setLoadingPurchases(true);
@@ -60,6 +64,53 @@ const MembersPage = () => {
       console.error('Error fetching purchases:', err);
     } finally {
       setLoadingPurchases(false);
+    }
+  };
+
+  const fetchPantheonContent = async () => {
+    setLoadingContent(true);
+    try {
+      const { data, error } = await supabase
+        .from('pantheon_content')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      setPantheonContent(data || []);
+    } catch (err) {
+      console.error('Error fetching pantheon content:', err);
+    } finally {
+      setLoadingContent(false);
+    }
+  };
+
+  const handleDownloadContent = async (content: PantheonContent) => {
+    // If external URL exists, open it directly
+    if (content.external_url) {
+      window.open(content.external_url, '_blank');
+      return;
+    }
+    
+    // Otherwise get signed URL from storage
+    try {
+      const { data, error } = await supabase.storage
+        .from('pantheon-content')
+        .createSignedUrl(content.file_path, 3600); // 1 hour expiry
+      
+      if (error) throw error;
+      
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Error getting download URL:', err);
+      toast({
+        title: "Error",
+        description: "Failed to get download link. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -269,29 +320,44 @@ const MembersPage = () => {
             </h2>
             
             {subscription.subscribed ? (
-              <div className="grid gap-4 md:grid-cols-2">
-                {pantheonContent.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/30 hover:border-primary transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs text-primary font-medium uppercase tracking-wider">
-                          {item.type}
-                        </span>
-                        <h3 className="font-semibold mt-1">{item.title}</h3>
+              loadingContent ? (
+                <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  <p className="text-muted-foreground mt-2">Loading content...</p>
+                </div>
+              ) : pantheonContent.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {pantheonContent.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/30 hover:border-primary transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-xs text-primary font-medium uppercase tracking-wider">
+                            {item.type}
+                          </span>
+                          <h3 className="font-semibold mt-1">{item.title}</h3>
+                          {item.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                          )}
+                        </div>
+                        <Button size="sm" variant="secondary" onClick={() => handleDownloadContent(item)}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
                       </div>
-                      <Button size="sm" variant="secondary">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
+                  <Crown className="h-12 w-12 text-primary mx-auto mb-3" />
+                  <p className="text-muted-foreground">New exclusive content coming soon!</p>
+                </div>
+              )
             ) : (
               <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center">
                 <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />

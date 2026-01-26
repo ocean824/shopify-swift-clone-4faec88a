@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      pantheon_content: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          external_url: string | null
+          file_path: string
+          id: string
+          is_active: boolean | null
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          file_path: string
+          id?: string
+          is_active?: boolean | null
+          title: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          file_path?: string
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
