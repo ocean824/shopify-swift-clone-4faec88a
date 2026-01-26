@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Gift, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useDiscountStore } from '@/stores/discountStore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,11 +17,9 @@ export function WelcomePopup() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user already has discount or dismissed popup this session
     const dismissed = sessionStorage.getItem('popup-dismissed');
     
     if (!hasSignupDiscount && !dismissed) {
-      // Show popup after a short delay
       const timer = setTimeout(() => {
         setIsOpen(true);
       }, 2000);
@@ -42,33 +39,30 @@ export function WelcomePopup() {
     if (!name.trim() || !email.trim() || !phone.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all fields to unlock your discount.",
+        description: "Please fill in all fields.",
         variant: "destructive",
       });
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
         title: "Invalid Email",
-        description: "Please enter a valid email address.",
+        description: "Please enter a valid email.",
         variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
     
     setSignupDiscount({ name: name.trim(), email: email.trim(), phone: phone.trim() });
     
     toast({
-      title: "🎉 Discount Unlocked!",
-      description: "You now get an extra 10% off all bundles!",
+      title: "🎉 10% Off Applied!",
+      description: "Your discount will be applied at checkout.",
     });
     
     setIsSubmitting(false);
@@ -78,106 +72,65 @@ export function WelcomePopup() {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            onClick={handleClose}
-          />
-          
-          {/* Popup */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          >
-            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-w-xs">
-              {/* Header with gradient */}
-              <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 p-4 text-center relative">
-                <button
-                  onClick={handleClose}
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-background/50 transition-colors"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </button>
-                
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 mb-2">
-                  <Gift className="h-5 w-5 text-primary" />
-                </div>
-                
-                <h2 className="text-lg font-bold text-foreground mb-1">
-                  Unlock 10% Off
-                </h2>
-                <p className="text-muted-foreground text-xs">
-                  Join & get 10% off your order!
-                </p>
-              </div>
-              
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="p-4 space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="popup-name" className="text-xs">Name</Label>
-                  <Input
-                    id="popup-name"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="bg-background h-9 text-sm"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="popup-email" className="text-xs">Email</Label>
-                  <Input
-                    id="popup-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background h-9 text-sm"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="popup-phone" className="text-xs">Phone</Label>
-                  <Input
-                    id="popup-phone"
-                    type="tel"
-                    placeholder="Your phone number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="bg-background h-9 text-sm"
-                  />
-                </div>
-                
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="w-full gap-2"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    'Unlocking...'
-                  ) : (
-                    <>
-                      <Sparkles className="h-3 w-3" />
-                      Unlock Discount
-                    </>
-                  )}
-                </Button>
-                
-                <p className="text-[10px] text-center text-muted-foreground">
-                  We respect your privacy.
-                </p>
-              </form>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="fixed top-16 left-1/2 -translate-x-1/2 z-50"
+        >
+          <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden w-72">
+            {/* Header */}
+            <div className="bg-primary/10 px-3 py-2 flex items-center gap-2 relative">
+              <Gift className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">Get 10% Off</span>
+              <button
+                onClick={handleClose}
+                className="absolute right-2 p-0.5 rounded hover:bg-background/50 transition-colors"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
             </div>
-          </motion.div>
-        </>
+            
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="p-3 space-y-2">
+              <Input
+                placeholder="Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-background h-8 text-xs"
+              />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-background h-8 text-xs"
+              />
+              <Input
+                type="tel"
+                placeholder="Phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="bg-background h-8 text-xs"
+              />
+              
+              <Button
+                type="submit"
+                size="sm"
+                className="w-full h-8 text-xs gap-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Applying...' : (
+                  <>
+                    <Sparkles className="h-3 w-3" />
+                    Unlock 10% Off
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
