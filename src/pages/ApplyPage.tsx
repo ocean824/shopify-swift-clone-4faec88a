@@ -20,41 +20,23 @@ const ApplyPage = () => {
           <div className="text-center mb-12">
             <UserPlus className="mx-auto h-16 w-16 text-primary mb-6" />
             <h1 className="text-4xl font-bold uppercase tracking-tight mb-4">Apply</h1>
-            <p className="text-muted-foreground">
-              Join the Sample Society team. Submit your application below.
-            </p>
           </div>
 
-          <form className="space-y-6 bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Your name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="your@email.com" />
-              </div>
-            </div>
+          <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border space-y-8">
+            <p className="text-muted-foreground leading-relaxed">
+              Here at Sample Society we invite all talented producers, beatmakers, and instrumentalists, serious enough about their craft to apply to sell works on our platform with our full support. We are more than open to building with other creative professionals and will lend the aid of our team once we find interest in an application and form an agreement with the applicant.
+            </p>
             
-            <div className="space-y-2">
-              <Label htmlFor="portfolio">Portfolio / Social Link</Label>
-              <Input id="portfolio" placeholder="https://..." />
-            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              We accept up to three applications from each applicant total; we will review no more than one application at a time per applicant & we will contact you after our review if interested. Feel free to apply below & potentially become a member.
+            </p>
             
-            <div className="space-y-2">
-              <Label htmlFor="message">Tell us about yourself</Label>
-              <Textarea 
-                id="message" 
-                placeholder="What do you bring to the table?"
-                rows={5}
-              />
-            </div>
-            
-            <Button type="submit" size="lg" className="w-full">
-              Submit Application
+            <Button asChild size="lg" className="w-full">
+              <a href="https://fs8.formsite.com/tYqVRc/w1jabvvuvr/index.html" target="_blank" rel="noopener noreferrer">
+                APPLY NOW
+              </a>
             </Button>
-          </form>
+          </div>
         </motion.div>
       </section>
     </Layout>
