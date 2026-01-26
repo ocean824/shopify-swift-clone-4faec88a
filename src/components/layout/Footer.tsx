@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
+import { Instagram, Twitter, Youtube } from 'lucide-react';
 
 const footerLinks = {
   shop: [
-    { name: 'All Products', href: '/' },
-    { name: 'Sample Kits', href: '/collections/sample-kits' },
+    { name: 'All Products', href: '/products' },
+    { name: 'Sample Packs', href: '/collections/sample-packs' },
     { name: 'MIDI Kits', href: '/collections/midi-kits' },
+    { name: 'Drum Kits', href: '/collections/drum-kits' },
+    { name: 'Bundle Builder', href: '/bundle' },
   ],
   support: [
     { name: 'Contact', href: '/contact' },
@@ -18,19 +21,42 @@ const footerLinks = {
   ],
 };
 
+const socialLinks = [
+  { name: 'Instagram', href: 'https://instagram.com/nikothegreat', icon: Instagram },
+  { name: 'Twitter', href: 'https://twitter.com/nikothegreat', icon: Twitter },
+  { name: 'YouTube', href: 'https://youtube.com/nikothegreat', icon: Youtube },
+];
+
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="border-t border-border bg-card">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
-          <div className="md:col-span-1">
-            <Link to="/" className="text-xl font-bold text-primary">
-              YOUR BRAND
+          <div className="lg:col-span-2">
+            <Link to="/" className="text-xl font-bold uppercase text-foreground">
+              NIKO THE GREAT
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Premium digital products crafted with passion.
+            <p className="mt-4 text-sm text-muted-foreground max-w-sm">
+              Premium sample packs, MIDI kits, and drum sounds crafted for 
+              the modern music producer. 100% royalty-free.
             </p>
+            
+            {/* Social Links */}
+            <div className="mt-6 flex gap-4">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label={social.name}
+                >
+                  <social.icon className="h-5 w-5" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Shop Links */}
@@ -93,7 +119,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Your Brand. All rights reserved.
+            © {new Date().getFullYear()} Niko The Great. All rights reserved.
           </p>
         </div>
       </div>

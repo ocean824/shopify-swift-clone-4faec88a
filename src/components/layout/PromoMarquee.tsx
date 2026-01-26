@@ -1,38 +1,23 @@
-import { motion } from 'framer-motion';
-
 interface PromoMarqueeProps {
   message?: string;
 }
 
 export function PromoMarquee({ 
-  message = "🎉 LAUNCH SALE • UP TO 50% OFF • FREE SHIPPING ON ORDERS $50+ • 🎉" 
+  message = "🔥 BUILD A BUNDLE & SAVE UP TO 40% • FREE INSTANT DOWNLOAD • ROYALTY FREE • 100% ORIGINAL SOUNDS • " 
 }: PromoMarqueeProps) {
-  // Duplicate the message for seamless loop
-  const repeatedMessage = `${message} ${message} ${message} ${message}`;
+  // Create enough repetitions for seamless loop
+  const messages = Array(8).fill(message).join('');
 
   return (
-    <div className="relative overflow-hidden bg-primary py-2">
-      <motion.div
-        className="flex whitespace-nowrap"
-        animate={{
-          x: [0, -50 + '%'],
-        }}
-        transition={{
-          x: {
-            repeat: Infinity,
-            repeatType: 'loop',
-            duration: 20,
-            ease: 'linear',
-          },
-        }}
-      >
-        <span className="inline-block px-4 text-sm font-medium text-primary-foreground">
-          {repeatedMessage}
+    <div className="relative overflow-hidden bg-primary py-2.5">
+      <div className="flex animate-marquee whitespace-nowrap">
+        <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+          {messages}
         </span>
-        <span className="inline-block px-4 text-sm font-medium text-primary-foreground">
-          {repeatedMessage}
+        <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+          {messages}
         </span>
-      </motion.div>
+      </div>
     </div>
   );
 }
