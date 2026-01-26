@@ -295,7 +295,7 @@ const Index = () => {
               <img 
                 src={heroBanner} 
                 alt="Sample Society" 
-                className="w-full h-[200%] object-cover object-[center_70%]"
+                className="w-full h-[200%] object-cover object-[center_70%] dark:invert-0 invert"
               />
             </div>
           </motion.div>
