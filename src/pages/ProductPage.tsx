@@ -259,11 +259,20 @@ export default function ProductPage() {
   const selectedBundleItems = bundleItems.filter(item => item.selected);
 
   const handleAddToCart = async () => {
+    // Use real Shopify variant IDs when available
+    const variantId = selectedFormat === 'stems' && kit.shopifyStemsVariantId 
+      ? kit.shopifyStemsVariantId 
+      : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${selectedFormat}`;
+    
+    const productId = selectedFormat === 'stems' && kit.shopifyStemsProductId
+      ? kit.shopifyStemsProductId
+      : kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
+    
     const productHandle = selectedFormat === 'stems' && kit.stemsHandle ? kit.stemsHandle : kit.wavHandle;
     
-    const mockProduct = {
+    const productData = {
       node: {
-        id: `gid://shopify/Product/${kit.id}`,
+        id: productId,
         title: kit.title,
         description: kit.description,
         handle: productHandle,
@@ -283,7 +292,7 @@ export default function ProductPage() {
         variants: {
           edges: [{
             node: {
-              id: `gid://shopify/ProductVariant/${kit.id}-${selectedFormat}`,
+              id: variantId,
               title: selectedFormat === 'stems' ? 'WAV + Stems' : 'WAV',
               price: { amount: String(currentPrice), currencyCode: 'USD' },
               compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
@@ -297,8 +306,8 @@ export default function ProductPage() {
     };
 
     await addItem({
-      product: mockProduct,
-      variantId: `gid://shopify/ProductVariant/${kit.id}-${selectedFormat}`,
+      product: productData,
+      variantId: variantId,
       variantTitle: selectedFormat === 'stems' ? 'WAV + Stems' : 'WAV',
       price: { amount: String(currentPrice), currencyCode: 'USD' },
       quantity: 1,
@@ -312,9 +321,18 @@ export default function ProductPage() {
       const price = format === 'stems' && item.kit.stemsPrice ? item.kit.stemsPrice : item.kit.wavPrice;
       const productHandle = format === 'stems' && item.kit.stemsHandle ? item.kit.stemsHandle : item.kit.wavHandle;
 
-      const mockProduct = {
+      // Use real Shopify variant IDs when available
+      const variantId = format === 'stems' && item.kit.shopifyStemsVariantId
+        ? item.kit.shopifyStemsVariantId
+        : item.kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${item.kit.id}-${format}`;
+      
+      const productId = format === 'stems' && item.kit.shopifyStemsProductId
+        ? item.kit.shopifyStemsProductId
+        : item.kit.shopifyWavProductId || `gid://shopify/Product/${item.kit.id}`;
+
+      const productData = {
         node: {
-          id: `gid://shopify/Product/${item.kit.id}`,
+          id: productId,
           title: item.kit.title,
           description: item.kit.description,
           handle: productHandle,
@@ -334,7 +352,7 @@ export default function ProductPage() {
           variants: {
             edges: [{
               node: {
-                id: `gid://shopify/ProductVariant/${item.kit.id}-${format}`,
+                id: variantId,
                 title: format === 'stems' ? 'WAV + Stems' : 'WAV',
                 price: { amount: String(price), currencyCode: 'USD' },
                 compareAtPrice: item.kit.compareAtPrice ? { amount: String(item.kit.compareAtPrice), currencyCode: 'USD' } : null,
@@ -348,8 +366,8 @@ export default function ProductPage() {
       };
 
       await addItem({
-        product: mockProduct,
-        variantId: `gid://shopify/ProductVariant/${item.kit.id}-${format}`,
+        product: productData,
+        variantId: variantId,
         variantTitle: format === 'stems' ? 'WAV + Stems' : 'WAV',
         price: { amount: String(price), currencyCode: 'USD' },
         quantity: 1,
