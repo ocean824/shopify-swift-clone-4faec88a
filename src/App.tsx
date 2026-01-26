@@ -18,11 +18,14 @@ import ApplyPage from "./pages/ApplyPage";
 import ApplicationFormPage from "./pages/ApplicationFormPage";
 import SocietyPage from "./pages/SocietyPage";
 import SubscribePage from "./pages/SubscribePage";
+import AuthPage from "./pages/AuthPage";
+import MembersPage from "./pages/MembersPage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 import { AudioProvider } from "./components/audio/AudioPlayer";
 import { WelcomePopup } from "./components/popups/WelcomePopup";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,8 @@ function AppContent() {
       <Route path="/apply/form" element={<ApplicationFormPage />} />
       <Route path="/society" element={<SocietyPage />} />
       <Route path="/subscribe" element={<SubscribePage />} />
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/members" element={<MembersPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -54,15 +59,17 @@ function AppContent() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AudioProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <WelcomePopup />
-          <AppContent />
-        </BrowserRouter>
-      </AudioProvider>
+      <AuthProvider>
+        <AudioProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <WelcomePopup />
+            <AppContent />
+          </BrowserRouter>
+        </AudioProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
