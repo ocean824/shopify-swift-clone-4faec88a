@@ -21,6 +21,7 @@ import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 import { AudioProvider } from "./components/audio/AudioPlayer";
+import { WelcomePopup } from "./components/popups/WelcomePopup";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <WelcomePopup />
           <AppContent />
         </BrowserRouter>
       </AudioProvider>
