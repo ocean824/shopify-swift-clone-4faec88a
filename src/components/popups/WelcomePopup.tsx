@@ -77,7 +77,7 @@ export function WelcomePopup() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed top-16 left-1/2 -translate-x-1/2 z-50"
+          className="fixed top-20 inset-x-0 z-50 flex justify-center px-4"
         >
           <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden w-72">
             {/* Header */}
