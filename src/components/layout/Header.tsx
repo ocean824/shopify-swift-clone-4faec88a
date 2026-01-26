@@ -33,7 +33,7 @@ export function Header() {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Sample Society" className="h-10 w-auto" />
+          <img src={logo} alt="Sample Society" className="h-10 w-auto invert brightness-0 invert" />
         </Link>
 
         {/* Desktop Navigation */}
