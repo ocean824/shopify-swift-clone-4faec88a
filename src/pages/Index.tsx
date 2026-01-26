@@ -165,14 +165,139 @@ function LoadingSkeleton() {
   );
 }
 
+// Featured Bundle Card Component - larger, centered
+function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
+  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const variantId = kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-wav`;
+    const productId = kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
+    
+    const productData = {
+      node: {
+        id: productId,
+        title: kit.title,
+        description: kit.description,
+        handle: kit.wavHandle,
+        productType: kit.category,
+        vendor: 'Samplesociety',
+        priceRange: {
+          minVariantPrice: { amount: String(kit.wavPrice), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(kit.wavPrice), currencyCode: 'USD' },
+        },
+        compareAtPriceRange: {
+          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
+        },
+        images: {
+          edges: [{ node: { url: kit.image, altText: kit.title } }],
+        },
+        variants: {
+          edges: [{
+            node: {
+              id: variantId,
+              title: 'WAV',
+              price: { amount: String(kit.wavPrice), currencyCode: 'USD' },
+              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
+              availableForSale: true,
+              selectedOptions: [{ name: 'Format', value: 'WAV' }],
+            },
+          }],
+        },
+        options: [{ name: 'Format', values: ['WAV'] }],
+      },
+    };
+
+    await addItem({
+      product: productData,
+      variantId: variantId,
+      variantTitle: 'WAV',
+      price: { amount: String(kit.wavPrice), currencyCode: 'USD' },
+      quantity: 1,
+      selectedOptions: [{ name: 'Format', value: 'WAV' }],
+    });
+    openCart();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="mx-auto max-w-2xl"
+    >
+      <Link to={`/product/${kit.wavHandle}`} className="group block">
+        <div className="relative overflow-hidden rounded-xl bg-card border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20">
+          {/* Limited Time Banner */}
+          <div className="absolute inset-x-0 top-0 z-10 bg-primary py-2 text-center">
+            <span className="text-sm font-bold uppercase tracking-wider text-primary-foreground">
+              🔥 Limited Time Deal
+            </span>
+          </div>
+          
+          <div className="pt-10">
+            <div className="relative aspect-square overflow-hidden">
+              <img
+                src={kit.image}
+                alt={kit.title}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <Button 
+                  size="lg" 
+                  className="font-semibold gap-2 text-lg px-8"
+                  onClick={handleAddToCart}
+                  disabled={cartLoading}
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  Get the Bundle
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 text-center">
+            <h3 className="text-xl font-bold text-foreground md:text-2xl">
+              {kit.title}
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+              {kit.description}
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <span className="text-3xl font-bold text-primary">
+                ${kit.wavPrice}
+              </span>
+              {kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice && (
+                <span className="text-xl text-muted-foreground line-through">
+                  ${kit.compareAtPrice}
+                </span>
+              )}
+              {kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice && (
+                <Badge className="bg-destructive text-destructive-foreground">
+                  {Math.round((1 - kit.wavPrice / kit.compareAtPrice) * 100)}% OFF
+                </Badge>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
 const Index = () => {
-  // Put All Kits Bundle first, then other products
+  // Separate bundle from other products
   const allKitsBundle = sampleKits.find(kit => kit.id === 'all-kits-bundle-2025');
   const otherKits = sampleKits.filter(kit => kit.id !== 'all-kits-bundle-2025');
-  const orderedKits = allKitsBundle ? [allKitsBundle, ...otherKits] : otherKits;
 
   const { visibleItems, hasMore, isLoading, loaderRef } = useInfiniteScroll({
-    items: orderedKits,
+    items: otherKits,
     initialCount: 12,
     incrementCount: 4,
   });
@@ -210,6 +335,13 @@ const Index = () => {
           </motion.p>
         </div>
       </section>
+
+      {/* Featured Bundle Section */}
+      {allKitsBundle && (
+        <section className="relative z-10 container mx-auto px-4 py-8">
+          <FeaturedBundleCard kit={allKitsBundle} />
+        </section>
+      )}
       
       {/* Products Section */}
       <section className="relative z-10 container mx-auto px-4 py-12">
