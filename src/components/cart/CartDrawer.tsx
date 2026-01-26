@@ -16,15 +16,16 @@ export function CartDrawer() {
     removeItem, 
     subtotal,
     bundleDiscount,
-    discountedSubtotal,
     bundleDiscountPercent,
     totalItems,
     getCheckoutUrl,
     syncCart,
-    appliedDiscount,
+    appliedDiscounts,
     discountError,
     applyDiscountCode,
     removeDiscountCode,
+    codeDiscountAmount,
+    totalSavings,
     finalTotal,
   } = useCartStore();
 
@@ -61,9 +62,9 @@ export function CartDrawer() {
     setIsApplyingCode(false);
   };
 
-  const handleRemoveDiscount = async () => {
+  const handleRemoveDiscount = async (code: string) => {
     setIsApplyingCode(true);
-    await removeDiscountCode();
+    await removeDiscountCode(code);
     setIsApplyingCode(false);
   };
 
@@ -204,57 +205,70 @@ export function CartDrawer() {
               {/* Footer */}
               {items.length > 0 && (
                 <div className="border-t border-border px-6 py-4">
-                  {/* Discount Code Input */}
-                  <div className="mb-4">
-                    {appliedDiscount ? (
-                      <div className="flex items-center justify-between rounded-lg bg-green-500/10 border border-green-500/30 p-3">
-                        <div className="flex items-center gap-2">
-                          <Check className="h-4 w-4 text-green-500" />
-                          <span className="text-sm font-medium text-green-500">
-                            {appliedDiscount.code}: {appliedDiscount.discountDisplay}
-                          </span>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleRemoveDiscount}
-                          disabled={isApplyingCode}
-                          className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                  {/* Applied Discounts */}
+                  {appliedDiscounts.length > 0 && (
+                    <div className="mb-3 space-y-2">
+                      {appliedDiscounts.map((discount) => (
+                        <div 
+                          key={discount.code}
+                          className="flex items-center justify-between rounded-lg bg-green-500/10 border border-green-500/30 px-3 py-2"
                         >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              placeholder="Discount code"
-                              value={discountCode}
-                              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                              onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
-                              className="pl-9"
-                              disabled={isApplyingCode}
-                            />
+                          <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4 text-green-500" />
+                            <span className="text-sm font-medium text-green-500">
+                              {discount.code}: {discount.discountDisplay}
+                            </span>
                           </div>
                           <Button 
-                            variant="outline" 
-                            onClick={handleApplyDiscount}
-                            disabled={isApplyingCode || !discountCode.trim()}
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleRemoveDiscount(discount.code)}
+                            disabled={isApplyingCode}
+                            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                           >
-                            {isApplyingCode ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              'Apply'
-                            )}
+                            <X className="h-3 w-3" />
                           </Button>
                         </div>
-                        {discountError && (
-                          <p className="text-xs text-destructive">{discountError}</p>
-                        )}
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Discount Code Input */}
+                  <div className="mb-4">
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Add discount code"
+                            value={discountCode}
+                            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                            onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
+                            className="pl-9"
+                            disabled={isApplyingCode}
+                          />
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          onClick={handleApplyDiscount}
+                          disabled={isApplyingCode || !discountCode.trim()}
+                        >
+                          {isApplyingCode ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Apply'
+                          )}
+                        </Button>
                       </div>
-                    )}
+                      {discountError && (
+                        <p className="text-xs text-destructive">{discountError}</p>
+                      )}
+                      {appliedDiscounts.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          ✓ Discount codes stack! Add more codes for additional savings.
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Subtotal */}
@@ -275,18 +289,14 @@ export function CartDrawer() {
                     </div>
                   )}
 
-                  {/* Code Discount */}
-                  {appliedDiscount && (
+                  {/* Code Discounts */}
+                  {codeDiscountAmount() > 0 && (
                     <div className="mb-2 flex items-center justify-between text-sm">
                       <span className="text-green-500 font-medium">
-                        Code: {appliedDiscount.code}
+                        Code Discounts ({appliedDiscounts.length} applied)
                       </span>
                       <span className="text-green-500 font-medium">
-                        {appliedDiscount.discountType === 'percentage' 
-                          ? `-${appliedDiscount.discountValue}%`
-                          : appliedDiscount.discountType === 'free'
-                          ? '-100%'
-                          : `-${formatPrice(appliedDiscount.discountValue)}`}
+                        -{formatPrice(codeDiscountAmount())}
                       </span>
                     </div>
                   )}
@@ -295,7 +305,7 @@ export function CartDrawer() {
                   <div className="mb-4 flex items-center justify-between">
                     <span className="text-base font-medium">Total</span>
                     <div className="text-right">
-                      {(bundleDiscountPercent() > 0 || appliedDiscount) && (
+                      {totalSavings() > 0 && (
                         <span className="text-sm text-muted-foreground line-through mr-2">
                           {formatPrice(subtotal())}
                         </span>
@@ -303,6 +313,15 @@ export function CartDrawer() {
                       <span className="text-lg font-bold">{formatPrice(finalTotal())}</span>
                     </div>
                   </div>
+
+                  {/* Total Savings Badge */}
+                  {totalSavings() > 0 && (
+                    <div className="mb-3 text-center">
+                      <span className="inline-block bg-green-500/20 text-green-500 text-xs font-medium px-3 py-1 rounded-full">
+                        You're saving {formatPrice(totalSavings())}!
+                      </span>
+                    </div>
+                  )}
                   
                   {bundleDiscountPercent() < 0.50 && totalItems() >= 2 && (
                     <p className="mb-3 text-center text-xs text-primary">
