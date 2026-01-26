@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -15,19 +15,8 @@ import heroBanner from '@/assets/hero-banner.png';
 
 function SampleKitCard({ kit, index }: { kit: SampleKit; index: number }) {
   const { addItem, isLoading: cartLoading, openCart } = useCartStore();
-  const { play, isPlaying, registerAudio, unregisterAudio } = useAudio();
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { play, isPlaying } = useAudio();
   const playing = isPlaying(kit.id);
-
-  // Register audio element for global audio management
-  useEffect(() => {
-    if (audioRef.current && kit.audioPreviewUrl) {
-      registerAudio(kit.id, audioRef.current);
-    }
-    return () => {
-      unregisterAudio(kit.id);
-    };
-  }, [kit.id, kit.audioPreviewUrl, registerAudio, unregisterAudio]);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -98,10 +87,6 @@ function SampleKitCard({ kit, index }: { kit: SampleKit; index: number }) {
       transition={{ duration: 0.4, delay: (index % 4) * 0.1 }}
       className="group"
     >
-      {/* Hidden audio element for this card */}
-      {kit.audioPreviewUrl && (
-        <audio ref={audioRef} src={kit.audioPreviewUrl} preload="none" />
-      )}
       
       <Link to={`/product/${kit.wavHandle}`} className="block">
         <div className="relative aspect-square overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
@@ -185,19 +170,8 @@ const BUNDLE_EXTERNAL_URL = 'https://my.flowlance.com/samplesociety';
 
 // Featured Bundle Card Component - links to external URL
 function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
-  const { play, isPlaying, registerAudio, unregisterAudio } = useAudio();
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { play, isPlaying } = useAudio();
   const playing = isPlaying(kit.id);
-
-  // Register audio element for global audio management
-  useEffect(() => {
-    if (audioRef.current && kit.audioPreviewUrl) {
-      registerAudio(kit.id, audioRef.current);
-    }
-    return () => {
-      unregisterAudio(kit.id);
-    };
-  }, [kit.id, kit.audioPreviewUrl, registerAudio, unregisterAudio]);
 
   const handleGetBundle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -221,10 +195,6 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
       transition={{ duration: 0.5 }}
       className="mx-auto max-w-md"
     >
-      {/* Hidden audio element for this card */}
-      {kit.audioPreviewUrl && (
-        <audio ref={audioRef} src={kit.audioPreviewUrl} preload="none" />
-      )}
       
       <a 
         href={BUNDLE_EXTERNAL_URL} 
