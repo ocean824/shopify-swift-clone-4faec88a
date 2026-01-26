@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useId } from 'react';
-import { ShoppingCart, ArrowLeft, Play, Pause, Sparkles } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -532,33 +532,14 @@ export default function ProductPage() {
             <h1 className="text-2xl md:text-3xl font-bold mb-3">{kit.title}</h1>
 
             {/* Price with Sale Badge */}
-            <div className="flex flex-col gap-1 mb-6">
-              <div className="flex items-center gap-3">
-                {isOnSale && (
-                  <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">SALE</Badge>
-                )}
-                {hasSignupDiscount && (
-                  <Badge className="bg-green-500 text-white text-xs px-2 py-0.5 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" />
-                    10% MEMBER
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {hasSignupDiscount ? (
-                  <>
-                    <span className="text-2xl font-bold text-primary">${(currentPrice * 0.9).toFixed(2)}</span>
-                    <span className="text-lg text-muted-foreground line-through">${currentPrice.toFixed(2)}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-2xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
-                    {isOnSale && kit.compareAtPrice && (
-                      <span className="text-lg text-muted-foreground line-through">${kit.compareAtPrice.toFixed(2)}</span>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="flex items-center gap-3 mb-6">
+              {isOnSale && (
+                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">SALE</Badge>
+              )}
+              <span className="text-2xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
+              {isOnSale && kit.compareAtPrice && (
+                <span className="text-lg text-muted-foreground line-through">${kit.compareAtPrice.toFixed(2)}</span>
+              )}
             </div>
 
             {/* Audio Waveform Player */}
@@ -635,37 +616,18 @@ export default function ProductPage() {
                   </div>
                 ))}
                 <div className="ml-auto text-right pl-4">
-                  {bundleDiscountPercent > 0 ? (
+                  {bundleKitDiscountPercent > 0 ? (
                     <>
                       <span className="text-xs text-muted-foreground line-through">${bundleSubtotal.toFixed(2)}</span>
                       <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
-                      <div className="flex flex-col items-end gap-0.5">
-                        {bundleKitDiscountPercent > 0 && (
-                          <span className="text-xs text-green-500 font-medium">
-                            {bundleKitDiscountPercent}% bundle
-                          </span>
-                        )}
-                        {hasSignupDiscount && (
-                          <span className="text-xs text-green-500 font-medium flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" />
-                            +10% member
-                          </span>
-                        )}
-                        <span className="text-xs text-green-600 font-semibold">
-                          Total: {bundleDiscountPercent}% off (-${bundleDiscountAmount.toFixed(2)})
-                        </span>
-                      </div>
+                      <span className="text-xs text-green-500 font-medium">
+                        {bundleKitDiscountPercent}% off (-${(bundleSubtotal * bundleKitDiscountPercent / 100).toFixed(2)})
+                      </span>
                     </>
                   ) : (
                     <>
                       <span className="text-xs text-muted-foreground">Total</span>
                       <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
-                      {hasSignupDiscount && (
-                        <span className="text-xs text-green-500 font-medium flex items-center gap-1 justify-end">
-                          <Sparkles className="h-3 w-3" />
-                          10% member discount ready
-                        </span>
-                      )}
                     </>
                   )}
                 </div>
