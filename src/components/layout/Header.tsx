@@ -7,12 +7,12 @@ import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'HOME', href: '/' },
-  { name: 'ALL PRODUCTS', href: '/products' },
-  { name: 'SAMPLE PACKS', href: '/collections/sample-packs' },
-  { name: 'MIDI KITS', href: '/collections/midi-kits' },
-  { name: 'DRUM KITS', href: '/collections/drum-kits' },
-  { name: 'BUNDLE BUILDER', href: '/bundle', highlight: true },
+  { name: 'SAMPLE KITS', href: '/' },
+  { name: 'DRUM KITS', href: '/drum-kits' },
+  { name: 'MIDI KITS', href: '/midi-kits' },
+  { name: 'MERCH', href: '/merch' },
+  { name: 'RESOURCES', href: '/resources' },
+  { name: 'ALL KITS BUNDLE', href: '/bundle', highlight: true },
 ];
 
 export function Header() {
@@ -27,7 +27,7 @@ export function Header() {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tight text-foreground uppercase">
-            NIKO THE GREAT
+            SAMPLE SOCIETY
           </span>
         </Link>
 

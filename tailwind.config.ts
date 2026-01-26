@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -61,8 +61,9 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
         brand: {
-          glow: "hsl(var(--brand-glow))",
-          gold: "hsl(var(--brand-gold))",
+          red: "hsl(var(--brand-red))",
+          grey: "hsl(var(--brand-grey))",
+          "dark-grey": "hsl(var(--brand-dark-grey))",
           success: "hsl(var(--brand-success))",
           surface: "hsl(var(--brand-surface))",
         },
@@ -85,16 +86,11 @@ export default {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
-        "glow-pulse": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.5" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "marquee": "marquee 30s linear infinite",
-        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
       },
     },
   },

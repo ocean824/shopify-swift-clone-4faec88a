@@ -2,16 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Niko The Great - Dark Theme Design System
-   Based on nikothegreat.com aesthetic - dark, bold, music producer vibes
+/* Sample Society - Dark Theme Design System
+   Red, Grey, and Black branding - music producer vibes
    All colors MUST be HSL.
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* Dark theme by default - matching nikothegreat.com */
+    /* Dark theme by default */
     --background: 0 0% 5%;
     --foreground: 0 0% 98%;
 
@@ -21,8 +21,8 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    /* Vibrant accent - electric blue/purple */
-    --primary: 263 70% 58%;
+    /* Primary - Sample Society Red */
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
@@ -31,7 +31,7 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 263 70% 58%;
+    --accent: 0 72% 51%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -39,27 +39,28 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 263 70% 58%;
+    --ring: 0 72% 51%;
 
     --radius: 0.5rem;
 
     /* Custom brand colors */
-    --brand-glow: 263 100% 65%;
-    --brand-gold: 45 100% 60%;
+    --brand-red: 0 72% 51%;
+    --brand-grey: 0 0% 45%;
+    --brand-dark-grey: 0 0% 20%;
     --brand-success: 142 76% 45%;
     --brand-surface: 0 0% 10%;
 
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 263 70% 58%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 263 70% 58%;
+    --sidebar-ring: 0 72% 51%;
   }
 
-  /* Light mode override - but site is primarily dark */
+  /* Light mode override */
   .light {
     --background: 0 0% 100%;
     --foreground: 0 0% 5%;
@@ -67,7 +68,7 @@
     --card-foreground: 0 0% 5%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 5%;
-    --primary: 263 70% 50%;
+    --primary: 0 72% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 5%;
@@ -79,7 +80,7 @@
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 263 70% 50%;
+    --ring: 0 72% 45%;
   }
 }
 
@@ -89,7 +90,7 @@
   }
 
   html {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   body {
@@ -132,7 +133,7 @@
   .bg-gradient-brand {
     background: linear-gradient(135deg, 
       hsl(var(--primary)) 0%, 
-      hsl(var(--brand-glow)) 50%,
+      hsl(var(--brand-red)) 50%,
       hsl(var(--primary)) 100%);
   }
 
@@ -140,21 +141,5 @@
     background: linear-gradient(180deg, 
       hsl(var(--card)) 0%, 
       hsl(var(--background)) 100%);
-  }
-
-  /* Animated gradient border */
-  .border-gradient {
-    position: relative;
-    background: hsl(var(--card));
-    border-radius: var(--radius);
-  }
-
-  .border-gradient::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: calc(var(--radius) + 1px);
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--brand-glow)), hsl(var(--primary)));
-    z-index: -1;
   }
 }
