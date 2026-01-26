@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
 import { AudioProvider } from "./components/audio/AudioPlayer";
 import { WelcomePopup } from "./components/popups/WelcomePopup";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <WelcomePopup />
           <AppContent />
         </BrowserRouter>
