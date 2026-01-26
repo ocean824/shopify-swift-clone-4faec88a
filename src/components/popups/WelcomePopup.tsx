@@ -13,7 +13,7 @@ export function WelcomePopup() {
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { hasSignupDiscount, setSignupDiscount } = useDiscountStore();
+  const { hasSignupDiscount, setSignupDiscount, isEmailUsed, isPhoneUsed } = useDiscountStore();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,6 +52,27 @@ export function WelcomePopup() {
         description: "Please enter a valid email.",
         variant: "destructive",
       });
+      return;
+    }
+
+    // Check if email or phone already used
+    if (isEmailUsed(email)) {
+      toast({
+        title: "Email Already Used",
+        description: "This email has already claimed a discount.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (isPhoneUsed(phone)) {
+      toast({
+        title: "Phone Already Used",
+        description: "This phone number has already claimed a discount.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
       return;
     }
 
