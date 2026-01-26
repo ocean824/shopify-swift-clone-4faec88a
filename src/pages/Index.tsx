@@ -139,12 +139,10 @@ function SampleKitCard({ kit, index }: { kit: SampleKit; index: number }) {
           )}
           
           {/* Hover Overlay with Buy Now */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none">
             <Button 
               size="default" 
-              className="font-semibold gap-2"
-              onClick={handleAddToCart}
-              disabled={cartLoading}
+              className="font-semibold gap-2 pointer-events-auto"
             >
               <ShoppingCart className="h-4 w-4" />
               Buy Now
