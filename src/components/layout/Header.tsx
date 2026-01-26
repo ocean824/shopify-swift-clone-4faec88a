@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Menu, X, User, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
 import { useTheme } from '@/hooks/useTheme';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import logo from '@/assets/logo-main.webp';
 
 const navigation = [
@@ -28,6 +29,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { openCart, totalItems } = useCartStore();
   const { theme } = useTheme();
+  const { user, subscription } = useAuth();
   const itemCount = totalItems();
   const location = useLocation();
 
@@ -65,6 +67,25 @@ export function Header() {
         {/* Right side actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          
+          {/* User/Login Button */}
+          <Link to={user ? '/members' : '/auth'}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+            >
+              {user ? (
+                subscription.subscribed ? (
+                  <Crown className="h-5 w-5 text-primary" />
+                ) : (
+                  <User className="h-5 w-5 text-foreground" />
+                )
+              ) : (
+                <User className="h-5 w-5" />
+              )}
+            </Button>
+          </Link>
           
           <Button
             variant="ghost"
@@ -126,6 +147,14 @@ export function Header() {
                   {item.name}
                 </Link>
               ))}
+              {/* Mobile auth link */}
+              <Link
+                to={user ? '/members' : '/auth'}
+                className="block py-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {user ? 'MY ACCOUNT' : 'SIGN IN'}
+              </Link>
             </div>
           </motion.div>
         )}
