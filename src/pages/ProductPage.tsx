@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useId } from 'react';
-import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Play, Pause, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { findKitByHandle, sampleKits, SampleKit } from '@/data/sampleKits';
 import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { useAudio } from '@/components/audio/AudioPlayer';
+import { useDiscountStore } from '@/stores/discountStore';
 
 // Global Audio Player for Product Page with auto-pause
 function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
@@ -331,6 +332,8 @@ export default function ProductPage() {
   const currentPrice = selectedFormat === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
   const isOnSale = kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice;
 
+  const { hasSignupDiscount } = useDiscountStore();
+
   // Calculate bundle total
   const selectedBundleItems = bundleItems.filter(item => item.selected);
   
@@ -343,9 +346,11 @@ export default function ProductPage() {
       return total + price;
     }, 0);
 
-  // 5% off for each extra kit (beyond the first one)
+  // 5% off for each extra kit (beyond the first one) + 10% if signed up
   const extraKitsCount = Math.max(0, selectedBundleItems.length - 1);
-  const bundleDiscountPercent = extraKitsCount * 5;
+  const bundleKitDiscountPercent = extraKitsCount * 5;
+  const signupDiscountPercent = hasSignupDiscount ? 10 : 0;
+  const bundleDiscountPercent = bundleKitDiscountPercent + signupDiscountPercent;
   const bundleDiscountAmount = bundleSubtotal * (bundleDiscountPercent / 100);
   const bundleTotal = bundleSubtotal - bundleDiscountAmount;
 
@@ -615,12 +620,33 @@ export default function ProductPage() {
                     <>
                       <span className="text-xs text-muted-foreground line-through">${bundleSubtotal.toFixed(2)}</span>
                       <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
-                      <span className="text-xs text-green-500 font-medium">{bundleDiscountPercent}% off (-${bundleDiscountAmount.toFixed(2)})</span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        {bundleKitDiscountPercent > 0 && (
+                          <span className="text-xs text-green-500 font-medium">
+                            {bundleKitDiscountPercent}% bundle
+                          </span>
+                        )}
+                        {hasSignupDiscount && (
+                          <span className="text-xs text-green-500 font-medium flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            +10% member
+                          </span>
+                        )}
+                        <span className="text-xs text-green-600 font-semibold">
+                          Total: {bundleDiscountPercent}% off (-${bundleDiscountAmount.toFixed(2)})
+                        </span>
+                      </div>
                     </>
                   ) : (
                     <>
                       <span className="text-xs text-muted-foreground">Total</span>
                       <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                      {hasSignupDiscount && (
+                        <span className="text-xs text-green-500 font-medium flex items-center gap-1 justify-end">
+                          <Sparkles className="h-3 w-3" />
+                          10% member discount ready
+                        </span>
+                      )}
                     </>
                   )}
                 </div>
