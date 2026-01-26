@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Sparkles } from 'lucide-react';
+
+type AuthMode = 'login' | 'signup' | 'forgot' | 'magic';
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -24,38 +26,68 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      switch (mode) {
+        case 'login': {
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          if (error) throw error;
+          toast({
+            title: "Welcome back!",
+            description: "You've been signed in successfully.",
+          });
+          navigate('/members');
+          break;
+        }
 
-        if (error) throw error;
-
-        toast({
-          title: "Welcome back!",
-          description: "You've been signed in successfully.",
-        });
-        navigate('/members');
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: {
-              display_name: displayName,
+        case 'signup': {
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: window.location.origin + '/members',
+              data: {
+                display_name: displayName,
+              },
             },
-          },
-        });
+          });
+          if (error) throw error;
+          toast({
+            title: "Account created!",
+            description: "You can now sign in to your account.",
+          });
+          setMode('login');
+          break;
+        }
 
-        if (error) throw error;
+        case 'forgot': {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/auth?reset=true',
+          });
+          if (error) throw error;
+          toast({
+            title: "Reset link sent!",
+            description: `Check ${email} for a password reset link.`,
+          });
+          setMode('login');
+          break;
+        }
 
-        toast({
-          title: "Account created!",
-          description: "You can now sign in to your account.",
-        });
-        setIsLogin(true);
+        case 'magic': {
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: window.location.origin + '/members',
+            },
+          });
+          if (error) throw error;
+          toast({
+            title: "Magic link sent!",
+            description: `Check ${email} for a sign-in link.`,
+          });
+          break;
+        }
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
@@ -69,6 +101,33 @@ const AuthPage = () => {
     }
   };
 
+  const getTitle = () => {
+    switch (mode) {
+      case 'login': return 'Sign In';
+      case 'signup': return 'Create Account';
+      case 'forgot': return 'Reset Password';
+      case 'magic': return 'Magic Link Sign In';
+    }
+  };
+
+  const getButtonText = () => {
+    switch (mode) {
+      case 'login': return 'Sign In';
+      case 'signup': return 'Create Account';
+      case 'forgot': return 'Send Reset Link';
+      case 'magic': return 'Send Magic Link';
+    }
+  };
+
+  const getLoadingText = () => {
+    switch (mode) {
+      case 'login': return 'Signing in...';
+      case 'signup': return 'Creating account...';
+      case 'forgot': return 'Sending reset link...';
+      case 'magic': return 'Sending magic link...';
+    }
+  };
+
   return (
     <Layout>
       <BeamsBackground />
@@ -79,12 +138,16 @@ const AuthPage = () => {
           className="w-full max-w-md"
         >
           <div className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border">
-            <h1 className="text-2xl font-bold text-center mb-6">
-              {isLogin ? 'Sign In' : 'Create Account'}
-            </h1>
+            <h1 className="text-2xl font-bold text-center mb-2">{getTitle()}</h1>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              {mode === 'login' && 'Use the email from your purchase'}
+              {mode === 'signup' && 'Create an account with your purchase email'}
+              {mode === 'forgot' && 'We\'ll send you a reset link'}
+              {mode === 'magic' && 'Sign in without a password'}
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
+              {mode === 'signup' && (
                 <div className="space-y-2">
                   <Label htmlFor="displayName">Display Name</Label>
                   <div className="relative">
@@ -117,43 +180,91 @@ const AuthPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    className="pl-10"
-                  />
+              {(mode === 'login' || mode === 'signup') && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    {isLogin ? 'Signing in...' : 'Creating account...'}
+                    {getLoadingText()}
                   </>
                 ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
+                  getButtonText()
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </button>
+            {/* Alternative sign-in options */}
+            {mode === 'login' && (
+              <div className="mt-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setMode('magic')}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Sign in with Magic Link
+                </Button>
+              </div>
+            )}
+
+            {/* Navigation links */}
+            <div className="mt-6 space-y-2 text-center">
+              {mode === 'login' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setMode('forgot')}
+                    className="block w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('signup')}
+                    className="block w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Don't have an account? <span className="text-primary">Sign up</span>
+                  </button>
+                </>
+              )}
+
+              {mode === 'signup' && (
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Already have an account? <span className="text-primary">Sign in</span>
+                </button>
+              )}
+
+              {(mode === 'forgot' || mode === 'magic') && (
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Back to sign in
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
