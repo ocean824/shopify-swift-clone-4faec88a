@@ -3,11 +3,11 @@ import { Instagram, Twitter, Youtube } from 'lucide-react';
 
 const footerLinks = {
   shop: [
-    { name: 'All Products', href: '/products' },
-    { name: 'Sample Packs', href: '/collections/sample-packs' },
-    { name: 'MIDI Kits', href: '/collections/midi-kits' },
-    { name: 'Drum Kits', href: '/collections/drum-kits' },
-    { name: 'Bundle Builder', href: '/bundle' },
+    { name: 'Sample Kits', href: '/' },
+    { name: 'Drum Kits', href: '/drum-kits' },
+    { name: 'MIDI Kits', href: '/midi-kits' },
+    { name: 'Merch', href: '/merch' },
+    { name: 'All Kits Bundle', href: '/bundle' },
   ],
   support: [
     { name: 'Contact', href: '/contact' },
@@ -22,9 +22,9 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { name: 'Instagram', href: 'https://instagram.com/nikothegreat', icon: Instagram },
-  { name: 'Twitter', href: 'https://twitter.com/nikothegreat', icon: Twitter },
-  { name: 'YouTube', href: 'https://youtube.com/nikothegreat', icon: Youtube },
+  { name: 'Instagram', href: 'https://instagram.com/samplesociety', icon: Instagram },
+  { name: 'Twitter', href: 'https://twitter.com/samplesociety', icon: Twitter },
+  { name: 'YouTube', href: 'https://youtube.com/samplesociety', icon: Youtube },
 ];
 
 export function Footer() {
@@ -35,10 +35,10 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link to="/" className="text-xl font-bold uppercase text-foreground">
-              NIKO THE GREAT
+              SAMPLE SOCIETY
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-sm">
-              Premium sample packs, MIDI kits, and drum sounds crafted for 
+              Premium sample packs, MIDI kits, and production resources crafted for 
               the modern music producer. 100% royalty-free.
             </p>
             
@@ -119,7 +119,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Niko The Great. All rights reserved.
+            © {new Date().getFullYear()} Sample Society. All rights reserved.
           </p>
         </div>
       </div>

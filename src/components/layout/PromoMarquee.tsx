@@ -3,9 +3,8 @@ interface PromoMarqueeProps {
 }
 
 export function PromoMarquee({ 
-  message = "🔥 BUILD A BUNDLE & SAVE UP TO 40% • FREE INSTANT DOWNLOAD • ROYALTY FREE • 100% ORIGINAL SOUNDS • " 
+  message = "🔥 ALL KITS BUNDLE 2025 NOW AVAILABLE • FREE INSTANT DOWNLOAD • ROYALTY FREE • 100% ORIGINAL SOUNDS • " 
 }: PromoMarqueeProps) {
-  // Create enough repetitions for seamless loop
   const messages = Array(8).fill(message).join('');
 
   return (
