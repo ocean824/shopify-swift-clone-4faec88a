@@ -263,14 +263,21 @@ export default function ProductPage() {
     format: 'wav' | 'stems';
   }[]>([]);
 
-  // Find kit from local data
+  // Find kit from local data - redirect bundle to external URL
   const kit = handle ? findKitByHandle(handle) : undefined;
+  
+  // Redirect All Kits Bundle to external URL
+  useEffect(() => {
+    if (kit?.id === 'all-kits-bundle-2025') {
+      window.location.href = 'https://my.flowlance.com/samplesociety';
+    }
+  }, [kit?.id]);
 
   // Initialize bundle items - current product first, then others
   useEffect(() => {
-    if (kit) {
+    if (kit && kit.id !== 'all-kits-bundle-2025') {
       const otherKits = sampleKits
-        .filter(k => k.id !== kit.id && k.category === 'sample-kit')
+        .filter(k => k.id !== kit.id && k.category === 'sample-kit' && k.id !== 'all-kits-bundle-2025')
         .slice(0, 4);
       
       setBundleItems([
