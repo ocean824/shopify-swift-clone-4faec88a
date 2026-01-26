@@ -346,8 +346,9 @@ export default function ProductPage() {
       return total + price;
     }, 0);
 
-  // 20% off if 5 products selected + 10% if signed up
-  const bundleKitDiscountPercent = selectedBundleItems.length >= 5 ? 20 : 0;
+  // 5% off for each extra kit (beyond the first one) + 10% if signed up
+  const extraKitsCount = Math.max(0, selectedBundleItems.length - 1);
+  const bundleKitDiscountPercent = extraKitsCount * 5;
   const signupDiscountPercent = hasSignupDiscount ? 10 : 0;
   const bundleDiscountPercent = bundleKitDiscountPercent + signupDiscountPercent;
   const bundleDiscountAmount = bundleSubtotal * (bundleDiscountPercent / 100);
