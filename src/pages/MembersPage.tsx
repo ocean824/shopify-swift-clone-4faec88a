@@ -5,7 +5,7 @@ import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Crown, Download, Calendar, Settings, Loader2, Lock, Mail, Package, RefreshCw } from 'lucide-react';
+import { Crown, Download, Calendar, Settings, Loader2, Lock, Package, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -63,7 +63,7 @@ const MembersPage = () => {
     }
   };
 
-  const handleResendDownload = async (purchase: Purchase) => {
+  const handleRedownload = async (purchase: Purchase) => {
     setResendingId(purchase.id);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
@@ -72,15 +72,18 @@ const MembersPage = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Download Link Sent!",
-        description: `Check ${purchase.email} for your download link.`,
-      });
+      if (data?.checkoutUrl) {
+        toast({
+          title: "Redownload Ready!",
+          description: "Complete the free checkout to receive your download email.",
+        });
+        window.open(data.checkoutUrl, '_blank');
+      }
     } catch (err) {
-      console.error('Error resending download:', err);
+      console.error('Error creating redownload:', err);
       toast({
         title: "Error",
-        description: "Failed to resend download link. Please try again.",
+        description: "Failed to create redownload. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -226,15 +229,15 @@ const MembersPage = () => {
                       </div>
                       <Button 
                         size="sm" 
-                        onClick={() => handleResendDownload(purchase)}
+                        onClick={() => handleRedownload(purchase)}
                         disabled={resendingId === purchase.id}
                       >
                         {resendingId === purchase.id ? (
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <Mail className="h-4 w-4 mr-2" />
+                          <Download className="h-4 w-4 mr-2" />
                         )}
-                        Resend Download
+                        Redownload
                       </Button>
                     </div>
                   </motion.div>
