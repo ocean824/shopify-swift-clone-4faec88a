@@ -80,6 +80,33 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_accounts: {
+        Row: {
+          created_at: string
+          email: string
+          has_all_products: boolean
+          has_lifetime_pantheon: boolean
+          id: string
+          notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          has_all_products?: boolean
+          has_lifetime_pantheon?: boolean
+          id?: string
+          notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          has_all_products?: boolean
+          has_lifetime_pantheon?: boolean
+          id?: string
+          notes?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
