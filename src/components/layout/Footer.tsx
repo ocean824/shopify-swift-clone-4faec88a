@@ -38,7 +38,7 @@ export function Footer() {
             </Link>
             <p className="mt-4 text-sm text-muted-foreground max-w-sm">
               Premium sample packs, MIDI kits, and production resources crafted for 
-              the modern music producer. 100% royalty-free.
+              the modern music producer. Master use licensed.
             </p>
             
             {/* Social Links */}

@@ -104,7 +104,7 @@ const Index = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             Premium sample packs, MIDI kits, and production resources for the modern music producer. 
-            100% royalty-free.
+            Master use licensed.
           </motion.p>
         </div>
       </section>
