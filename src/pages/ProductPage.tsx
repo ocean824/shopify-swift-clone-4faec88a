@@ -332,7 +332,9 @@ export default function ProductPage() {
   const isOnSale = kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice;
 
   // Calculate bundle total
-  const bundleTotal = bundleItems
+  const selectedBundleItems = bundleItems.filter(item => item.selected);
+  
+  const bundleSubtotal = bundleItems
     .filter(item => item.selected)
     .reduce((total, item) => {
       const price = item.format === 'stems' && item.kit.stemsPrice 
@@ -341,7 +343,11 @@ export default function ProductPage() {
       return total + price;
     }, 0);
 
-  const selectedBundleItems = bundleItems.filter(item => item.selected);
+  // 5% off for each extra kit (beyond the first one)
+  const extraKitsCount = Math.max(0, selectedBundleItems.length - 1);
+  const bundleDiscountPercent = extraKitsCount * 5;
+  const bundleDiscountAmount = bundleSubtotal * (bundleDiscountPercent / 100);
+  const bundleTotal = bundleSubtotal - bundleDiscountAmount;
 
   const handleAddToCart = async () => {
     const variantId = selectedFormat === 'stems' && kit.shopifyStemsVariantId 
@@ -605,8 +611,18 @@ export default function ProductPage() {
                   </div>
                 ))}
                 <div className="ml-auto text-right pl-4">
-                  <span className="text-xs text-muted-foreground">Total</span>
-                  <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                  {bundleDiscountPercent > 0 ? (
+                    <>
+                      <span className="text-xs text-muted-foreground line-through">${bundleSubtotal.toFixed(2)}</span>
+                      <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                      <span className="text-xs text-green-500 font-medium">{bundleDiscountPercent}% off (-${bundleDiscountAmount.toFixed(2)})</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xs text-muted-foreground">Total</span>
+                      <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                    </>
+                  )}
                 </div>
               </div>
 
