@@ -154,9 +154,12 @@ const MembersPage = () => {
                   <div className="space-y-1">
                     <p className="text-green-500 font-medium flex items-center gap-2">
                       <Crown className="h-4 w-4" />
-                      The Pantheon - {subscription.plan === 'yearly' ? 'Yearly' : 'Monthly'}
+                      The Pantheon - {subscription.plan === 'lifetime' ? 'Lifetime VIP' : subscription.plan === 'yearly' ? 'Yearly' : 'Monthly'}
                     </p>
-                    {subscription.subscriptionEnd && (
+                    {subscription.isVip && (
+                      <p className="text-sm text-primary font-medium">★ VIP Account - All Access</p>
+                    )}
+                    {subscription.subscriptionEnd && !subscription.isVip && (
                       <p className="text-sm text-muted-foreground flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
                         Renews on {new Date(subscription.subscriptionEnd).toLocaleDateString()}

@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionStatus {
   subscribed: boolean;
-  plan: 'monthly' | 'yearly' | null;
+  plan: 'monthly' | 'yearly' | 'lifetime' | null;
   subscriptionEnd: string | null;
+  isVip: boolean;
 }
 
 interface AuthContextType {
@@ -27,11 +28,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     subscribed: false,
     plan: null,
     subscriptionEnd: null,
+    isVip: false,
   });
 
   const checkSubscription = async () => {
     if (!session) {
-      setSubscription({ subscribed: false, plan: null, subscriptionEnd: null });
+      setSubscription({ subscribed: false, plan: null, subscriptionEnd: null, isVip: false });
       return;
     }
 
@@ -47,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         subscribed: data?.subscribed || false,
         plan: data?.plan || null,
         subscriptionEnd: data?.subscription_end || null,
+        isVip: data?.is_vip || false,
       });
     } catch (err) {
       console.error('Error checking subscription:', err);
@@ -55,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setSubscription({ subscribed: false, plan: null, subscriptionEnd: null });
+    setSubscription({ subscribed: false, plan: null, subscriptionEnd: null, isVip: false });
   };
 
   useEffect(() => {

@@ -11,6 +11,27 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[GET-PURCHASES] ${step}${detailsStr}`);
 };
 
+// All available products for VIP accounts
+const ALL_PRODUCTS = [
+  { product_name: 'ALL KITS BUNDLE 2025', product_id: 'all-kits-bundle-2025', amount: 199.99 },
+  { product_name: 'Moonlight Drum Kit Vol. 1', product_id: 'moonlight-drumkit', amount: 24.99 },
+  { product_name: 'Mana Vol. 1', product_id: 'mana-vol-1', amount: 24.99 },
+  { product_name: 'Haze Midi Phrases Vol. 1', product_id: 'haze-midi-phrases', amount: 19.99 },
+  { product_name: 'Unrequited Love Vol. 2', product_id: 'unrequited-love-vol-2', amount: 24.99 },
+  { product_name: 'Unrequited Love Vol. 1', product_id: 'unrequited-love-vol-1', amount: 24.99 },
+  { product_name: 'VZN Compositions Vol. 1', product_id: 'vzn-compositions', amount: 24.99 },
+  { product_name: 'Abstract Minds Vol. 1', product_id: 'abstract-minds', amount: 24.99 },
+  { product_name: 'Vibrant Darkness Vol. 1', product_id: 'vibrant-darkness', amount: 24.99 },
+  { product_name: 'Stained Glass Vol. 2', product_id: 'stained-glass-vol-2', amount: 24.99 },
+  { product_name: 'Stained Glass Vol. 1', product_id: 'stained-glass-vol-1', amount: 24.99 },
+  { product_name: 'Vintage Vibes Vol. 1', product_id: 'vintage-vibes', amount: 24.99 },
+  { product_name: 'Gray Area Vol. 1', product_id: 'gray-area', amount: 24.99 },
+  { product_name: 'Black Friday Vol. 1', product_id: 'black-friday', amount: 24.99 },
+  { product_name: 'The Feels Vol. 1', product_id: 'the-feels', amount: 24.99 },
+  { product_name: 'Flood Szn Vol. 2', product_id: 'flood-szn-vol-2', amount: 24.99 },
+  { product_name: 'Flood Szn Vol. 1', product_id: 'flood-szn-vol-1', amount: 24.99 },
+];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,7 +56,34 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Fetch purchases from database by email
+    // Check for VIP status first
+    const { data: vipAccount } = await supabaseClient
+      .from('vip_accounts')
+      .select('*')
+      .eq('email', user.email)
+      .maybeSingle();
+
+    if (vipAccount?.has_all_products) {
+      logStep("VIP account found with all products access", { email: user.email });
+      
+      // Return all products as "purchased" for VIP accounts
+      const vipPurchases = ALL_PRODUCTS.map((p, index) => ({
+        id: `vip_${p.product_id}`,
+        productName: p.product_name,
+        amount: 0, // Free for VIP
+        currency: 'USD',
+        purchaseDate: new Date().toISOString(),
+        email: user.email,
+        isVipAccess: true,
+      }));
+
+      return new Response(JSON.stringify({ purchases: vipPurchases, isVip: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Fetch purchases from database by email for regular users
     const { data: purchases, error: purchasesError } = await supabaseClient
       .from('purchases')
       .select('*')
