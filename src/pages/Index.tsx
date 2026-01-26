@@ -122,12 +122,12 @@ function SampleKitCard({ kit, index }: { kit: SampleKit; index: number }) {
             </Badge>
           )}
 
-          {/* Play Button */}
+          {/* Play Button - z-20 to stay above overlay */}
           {kit.audioPreviewUrl && (
             <Button
               variant="outline"
               size="icon"
-              className="absolute right-3 top-3 h-10 w-10 rounded-full border-primary/50 bg-background/80 backdrop-blur hover:bg-primary/20"
+              className="absolute right-3 top-3 z-20 h-10 w-10 rounded-full border-primary/50 bg-background/90 backdrop-blur hover:bg-primary/20 hover:scale-110 transition-transform"
               onClick={handlePlayClick}
             >
               {playing ? (
