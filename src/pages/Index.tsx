@@ -185,10 +185,32 @@ const BUNDLE_EXTERNAL_URL = 'https://my.flowlance.com/samplesociety';
 
 // Featured Bundle Card Component - links to external URL
 function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
+  const { play, isPlaying, registerAudio, unregisterAudio } = useAudio();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const playing = isPlaying(kit.id);
+
+  // Register audio element for global audio management
+  useEffect(() => {
+    if (audioRef.current && kit.audioPreviewUrl) {
+      registerAudio(kit.id, audioRef.current);
+    }
+    return () => {
+      unregisterAudio(kit.id);
+    };
+  }, [kit.id, kit.audioPreviewUrl, registerAudio, unregisterAudio]);
+
   const handleGetBundle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     window.open(BUNDLE_EXTERNAL_URL, '_blank');
+  };
+
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (kit.audioPreviewUrl) {
+      play(kit.id, kit.audioPreviewUrl);
+    }
   };
 
   return (
@@ -199,6 +221,11 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
       transition={{ duration: 0.5 }}
       className="mx-auto max-w-md"
     >
+      {/* Hidden audio element for this card */}
+      {kit.audioPreviewUrl && (
+        <audio ref={audioRef} src={kit.audioPreviewUrl} preload="none" />
+      )}
+      
       <a 
         href={BUNDLE_EXTERNAL_URL} 
         target="_blank" 
@@ -220,6 +247,22 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
                 alt={kit.title}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+              
+              {/* Play Button */}
+              {kit.audioPreviewUrl && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-3 top-3 z-20 h-10 w-10 rounded-full border-primary/50 bg-background/90 backdrop-blur hover:bg-primary/20 hover:scale-110 transition-transform"
+                  onClick={handlePlayClick}
+                >
+                  {playing ? (
+                    <Pause className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Play className="h-4 w-4 ml-0.5 text-primary" />
+                  )}
+                </Button>
+              )}
               
               {/* Hover Overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
