@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 import { ShopifyProduct } from '@/lib/shopify';
-import { ThundercloudBackground } from '@/components/effects/ThundercloudBackground';
+import { BeamsBackground } from '@/components/effects/BeamsBackground';
 
 function MerchProductCard({ product }: { product: ShopifyProduct }) {
   const { addItem, isLoading: cartLoading } = useCartStore();
@@ -123,7 +123,7 @@ export default function MerchPage() {
 
   return (
     <Layout>
-      <ThundercloudBackground />
+      <BeamsBackground />
       
       {/* Hero Banner */}
       <section className="relative z-10 bg-gradient-to-b from-primary/10 to-transparent py-12 md:py-16">

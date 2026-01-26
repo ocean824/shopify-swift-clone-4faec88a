@@ -5,7 +5,7 @@ import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { Crown, Download, Calendar, Settings, Loader2, Lock, Package, RefreshCw } from 'lucide-react';
+import { Crown, Download, Calendar, Settings, Loader2, Lock, Package, RefreshCw, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,6 +36,7 @@ const MembersPage = () => {
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [loadingContent, setLoadingContent] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -46,11 +47,26 @@ const MembersPage = () => {
   useEffect(() => {
     if (user) {
       fetchPurchases();
+      checkAdminStatus();
       if (subscription.subscribed) {
         fetchPantheonContent();
       }
     }
   }, [user, subscription.subscribed]);
+
+  const checkAdminStatus = async () => {
+    if (!user?.email) return;
+    try {
+      const { data } = await supabase
+        .from('admin_accounts')
+        .select('email')
+        .eq('email', user.email)
+        .maybeSingle();
+      setIsAdmin(!!data);
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+    }
+  };
 
   const fetchPurchases = async () => {
     setLoadingPurchases(true);
@@ -391,6 +407,27 @@ const MembersPage = () => {
               </div>
             )}
           </div>
+
+          {/* Admin Section - Only visible to admins */}
+          {isAdmin && (
+            <div className="mt-8">
+              <div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Shield className="h-6 w-6 text-primary" />
+                    <div>
+                      <h2 className="text-xl font-semibold">Admin Panel</h2>
+                      <p className="text-sm text-muted-foreground">Manage discount codes and access</p>
+                    </div>
+                  </div>
+                  <Button onClick={() => navigate('/admin/codes')}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Codes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </section>
     </Layout>
