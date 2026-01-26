@@ -288,16 +288,23 @@ const ApplicationFormPage = () => {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold border-b border-border pb-2">Work Examples</h2>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="audio">Submit audio file examples of your work (wav or mp3, up to 3 songs) <span className="text-destructive">*</span></Label>
-                <Input 
-                  id="audio" 
-                  type="file" 
-                  accept=".wav,.mp3,audio/wav,audio/mpeg"
-                  multiple
-                  onChange={(e) => setAudioFiles(e.target.files)}
-                  className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                />
+                <div className="relative">
+                  <Input 
+                    id="audio" 
+                    type="file" 
+                    accept=".wav,.mp3,audio/wav,audio/mpeg"
+                    multiple
+                    onChange={(e) => setAudioFiles(e.target.files)}
+                    className="h-auto py-4 px-4 cursor-pointer file:mr-4 file:py-2 file:px-6 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 file:cursor-pointer"
+                  />
+                </div>
+                {audioFiles && audioFiles.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    {audioFiles.length} file{audioFiles.length > 1 ? 's' : ''} selected
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground">Maximum 3 files allowed</p>
               </div>
             </div>
