@@ -8,6 +8,7 @@ import ProductPage from "./pages/ProductPage";
 import MerchPage from "./pages/MerchPage";
 import DrumKitsPage from "./pages/DrumKitsPage";
 import MidiKitsPage from "./pages/MidiKitsPage";
+import SampleKitsPage from "./pages/SampleKitsPage";
 import AllKitsBundlePage from "./pages/AllKitsBundlePage";
 import TermsPage from "./pages/TermsPage";
 import CreditsPage from "./pages/CreditsPage";
@@ -28,6 +29,7 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/sample-kits" element={<SampleKitsPage />} />
       <Route path="/product/:handle" element={<ProductPage />} />
       <Route path="/merch" element={<MerchPage />} />
       <Route path="/drum-kits" element={<DrumKitsPage />} />

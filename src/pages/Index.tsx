@@ -270,11 +270,11 @@ const Index = () => {
   // Featured bundle (shown separately at top)
   const allKitsBundle = sampleKits.find(kit => kit.id === 'all-kits-bundle-2025');
   
-  // Only show sample-kit category on this page (exclude drum-kits, midi-kits, bundles)
-  const sampleKitsOnly = sampleKits.filter(kit => kit.category === 'sample-kit');
+  // Show all products except the bundle on homepage
+  const otherKits = sampleKits.filter(kit => kit.id !== 'all-kits-bundle-2025');
 
   const { visibleItems, hasMore, isLoading, loaderRef } = useInfiniteScroll({
-    items: sampleKitsOnly,
+    items: otherKits,
     initialCount: 12,
     incrementCount: 4,
   });

@@ -11,7 +11,7 @@ import logo from '@/assets/logo-main.webp';
 
 const navigation = [
   { name: 'BEATS', href: '/beats' },
-  { name: 'SAMPLE KITS', href: '/' },
+  { name: 'SAMPLE KITS', href: '/sample-kits' },
   { name: 'DRUM KITS', href: '/drum-kits' },
   { name: 'MIDI KITS', href: '/midi-kits' },
   { name: 'MERCH', href: '/merch' },
