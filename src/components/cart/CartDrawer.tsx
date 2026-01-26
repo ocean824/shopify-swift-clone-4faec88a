@@ -14,6 +14,10 @@ export function CartDrawer() {
     updateQuantity, 
     removeItem, 
     subtotal,
+    bundleDiscount,
+    discountedSubtotal,
+    bundleDiscountPercent,
+    totalItems,
     getCheckoutUrl,
     syncCart,
   } = useCartStore();
@@ -175,10 +179,36 @@ export function CartDrawer() {
               {/* Footer */}
               {items.length > 0 && (
                 <div className="border-t border-border px-6 py-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="text-base font-medium">Subtotal</span>
-                    <span className="text-lg font-bold">{formatPrice(subtotal())}</span>
+                  {/* Subtotal */}
+                  <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Subtotal ({totalItems()} items)</span>
+                    <span>{formatPrice(subtotal())}</span>
                   </div>
+                  
+                  {/* Bundle Discount */}
+                  {bundleDiscountPercent() > 0 && (
+                    <div className="mb-2 flex items-center justify-between text-sm">
+                      <span className="text-green-500 font-medium">
+                        Bundle Discount ({Math.round(bundleDiscountPercent() * 100)}% off)
+                      </span>
+                      <span className="text-green-500 font-medium">
+                        -{formatPrice(bundleDiscount())}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Total */}
+                  <div className="mb-4 flex items-center justify-between">
+                    <span className="text-base font-medium">Total</span>
+                    <span className="text-lg font-bold">{formatPrice(discountedSubtotal())}</span>
+                  </div>
+                  
+                  {bundleDiscountPercent() < 0.50 && totalItems() >= 2 && (
+                    <p className="mb-3 text-center text-xs text-primary">
+                      Add {5 - totalItems()} more item{5 - totalItems() !== 1 ? 's' : ''} for 50% off!
+                    </p>
+                  )}
+                  
                   <p className="mb-4 text-center text-xs text-muted-foreground">
                     Shipping and taxes calculated at checkout
                   </p>
