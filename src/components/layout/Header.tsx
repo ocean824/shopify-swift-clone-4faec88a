@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
-
+import logo from '@/assets/logo.gif';
 const navigation = [
   { name: 'SAMPLE KITS', href: '/' },
   { name: 'DRUM KITS', href: '/drum-kits' },
@@ -26,9 +26,7 @@ export function Header() {
       <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight text-foreground uppercase">
-            SAMPLE SOCIETY
-          </span>
+          <img src={logo} alt="Sample Society" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop Navigation */}
