@@ -3,9 +3,7 @@ import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { motion } from 'framer-motion';
 import { UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Link } from 'react-router-dom';
 
 const ApplyPage = () => {
   return (
@@ -32,9 +30,9 @@ const ApplyPage = () => {
             </p>
             
             <Button asChild size="lg" className="w-full">
-              <a href="https://fs8.formsite.com/tYqVRc/w1jabvvuvr/index.html" target="_blank" rel="noopener noreferrer">
+              <Link to="/apply/form">
                 APPLY NOW
-              </a>
+              </Link>
             </Button>
           </div>
         </motion.div>
