@@ -12,7 +12,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAudio } from '@/components/audio/AudioPlayer';
 import heroBanner from '@/assets/hero-banner.png';
 
-function SampleKitCard({ kit, index, featured = false }: { kit: SampleKit; index: number; featured?: boolean }) {
+function SampleKitCard({ kit, index }: { kit: SampleKit; index: number }) {
   const { addItem, isLoading: cartLoading, openCart } = useCartStore();
   const { play, isPlaying } = useAudio();
   const playing = isPlaying(kit.id);
@@ -84,10 +84,10 @@ function SampleKitCard({ kit, index, featured = false }: { kit: SampleKit; index
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.4, delay: (index % 4) * 0.1 }}
-      className={featured ? "col-span-2 row-span-2" : "group"}
+      className="group"
     >
       <Link to={`/product/${kit.wavHandle}`} className="block">
-        <div className={`relative overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 ${featured ? 'aspect-square' : 'aspect-square'}`}>
+        <div className="relative aspect-square overflow-hidden rounded-lg bg-card border border-border transition-all duration-300 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
           <img
             src={kit.image}
             alt={kit.title}
@@ -124,7 +124,7 @@ function SampleKitCard({ kit, index, featured = false }: { kit: SampleKit; index
           {/* Hover Overlay with Buy Now */}
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             <Button 
-              size={featured ? "lg" : "default"} 
+              size="default" 
               className="font-semibold gap-2"
               onClick={handleAddToCart}
               disabled={cartLoading}
@@ -135,12 +135,12 @@ function SampleKitCard({ kit, index, featured = false }: { kit: SampleKit; index
           </div>
         </div>
 
-        <div className={`mt-4 space-y-1 text-center ${featured ? 'mt-6' : ''}`}>
-          <h3 className={`font-semibold text-foreground line-clamp-2 leading-tight ${featured ? 'text-xl' : ''}`}>
+        <div className="mt-4 space-y-1 text-center">
+          <h3 className="font-semibold text-foreground line-clamp-2 leading-tight">
             {kit.title}
           </h3>
           <div className="flex items-center justify-center gap-2">
-            <span className={`font-bold text-foreground ${featured ? 'text-2xl' : 'text-lg'}`}>
+            <span className="text-lg font-bold text-foreground">
               ${kit.wavPrice}
             </span>
             {kit.compareAtPrice && kit.compareAtPrice > kit.wavPrice && (
@@ -166,13 +166,14 @@ function LoadingSkeleton() {
 }
 
 const Index = () => {
-  // Separate the All Kits Bundle from other products
+  // Put All Kits Bundle first, then other products
   const allKitsBundle = sampleKits.find(kit => kit.id === 'all-kits-bundle-2025');
   const otherKits = sampleKits.filter(kit => kit.id !== 'all-kits-bundle-2025');
+  const orderedKits = allKitsBundle ? [allKitsBundle, ...otherKits] : otherKits;
 
   const { visibleItems, hasMore, isLoading, loaderRef } = useInfiniteScroll({
-    items: otherKits,
-    initialCount: 11, // Account for the featured item taking 4 spots
+    items: orderedKits,
+    initialCount: 12,
     incrementCount: 4,
   });
 
@@ -219,16 +220,10 @@ const Index = () => {
           </p>
         </div>
         
-        {/* 4-column grid with featured All Kits Bundle */}
-        <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-          {/* Featured All Kits Bundle - 2x2 */}
-          {allKitsBundle && (
-            <SampleKitCard kit={allKitsBundle} index={0} featured />
-          )}
-          
-          {/* Regular products */}
+        {/* 4-column grid */}
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
           {visibleItems.map((kit, index) => (
-            <SampleKitCard key={kit.id} kit={kit} index={index + 1} />
+            <SampleKitCard key={kit.id} kit={kit} index={index} />
           ))}
           
           {/* Loading skeletons */}
