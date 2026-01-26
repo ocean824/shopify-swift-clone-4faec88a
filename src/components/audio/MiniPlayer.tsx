@@ -8,6 +8,9 @@ import { useAudio } from './AudioPlayer';
 import { MiniWaveform } from './MiniWaveform';
 import { sampleKits } from '@/data/sampleKits';
 
+// External bundle URL
+const BUNDLE_EXTERNAL_URL = 'https://my.flowlance.com/samplesociety';
+
 export function MiniPlayer() {
   const navigate = useNavigate();
   const { currentlyPlaying, play, pause, isPlaying, progress, duration, seek, currentUrl } = useAudio();
@@ -93,7 +96,13 @@ export function MiniPlayer() {
 
   const handleImageClick = () => {
     if (playingKit) {
-      navigate(`/product/${playingKit.wavHandle}`);
+      // Bundle links to external Flowlance funnel
+      if (playingKit.id === 'all-kits-bundle-2025') {
+        window.open(BUNDLE_EXTERNAL_URL, '_blank');
+      } else {
+        // Other products navigate to product page (audio keeps playing)
+        navigate(`/product/${playingKit.wavHandle}`);
+      }
     }
   };
 
