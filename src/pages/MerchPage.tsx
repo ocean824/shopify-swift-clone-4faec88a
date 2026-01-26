@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 import { ShopifyProduct } from '@/lib/shopify';
+import { ThundercloudBackground } from '@/components/effects/ThundercloudBackground';
 
 function MerchProductCard({ product }: { product: ShopifyProduct }) {
   const { addItem, isLoading: cartLoading } = useCartStore();
@@ -122,8 +123,10 @@ export default function MerchPage() {
 
   return (
     <Layout>
+      <ThundercloudBackground />
+      
       {/* Hero Banner */}
-      <section className="bg-gradient-to-b from-primary/10 to-background py-12 md:py-16">
+      <section className="relative z-10 bg-gradient-to-b from-primary/10 to-transparent py-12 md:py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-bold uppercase tracking-tight md:text-5xl">
             Official Merch
@@ -135,7 +138,7 @@ export default function MerchPage() {
       </section>
 
       {/* Products Grid */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="relative z-10 container mx-auto px-4 py-12">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
