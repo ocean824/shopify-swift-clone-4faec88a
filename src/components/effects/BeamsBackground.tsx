@@ -59,9 +59,10 @@ export function BeamsBackground() {
           canvas.height
         );
         
-        const beamColor = isDark ? '30%' : '70%';
+        const beamColor = isDark ? '30%' : '40%';
+        const beamOpacity = isDark ? 0.04 : 0.08;
         gradient.addColorStop(0, `hsla(0, 0%, ${beamColor}, 0)`);
-        gradient.addColorStop(0.5, `hsla(0, 0%, ${beamColor}, ${0.04 + Math.sin(time * 2 + i) * 0.02})`);
+        gradient.addColorStop(0.5, `hsla(0, 0%, ${beamColor}, ${beamOpacity + Math.sin(time * 2 + i) * 0.02})`);
         gradient.addColorStop(1, `hsla(0, 0%, ${beamColor}, 0)`);
         
         ctx.fillStyle = gradient;
@@ -70,8 +71,9 @@ export function BeamsBackground() {
     };
 
     const drawParticles = () => {
-      // Use white particles on dark, dark particles on light
-      const particleColor = isDark ? '100%' : '20%';
+      // Use white particles on dark, much darker particles on light
+      const particleColor = isDark ? '100%' : '10%';
+      const particleOpacityMultiplier = isDark ? 1 : 1.5;
       
       particles.forEach((particle) => {
         particle.x += particle.speedX;
@@ -85,7 +87,7 @@ export function BeamsBackground() {
 
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(0, 0%, ${particleColor}, ${particle.opacity})`;
+        ctx.fillStyle = `hsla(0, 0%, ${particleColor}, ${particle.opacity * particleOpacityMultiplier})`;
         ctx.fill();
       });
     };
