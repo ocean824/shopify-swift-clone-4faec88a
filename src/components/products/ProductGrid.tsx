@@ -1,20 +1,13 @@
 import { ProductCard } from './ProductCard';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface Product {
-  id: string;
-  handle: string;
-  title: string;
-  productType?: string;
-  price: number;
-  compareAtPrice?: number | null;
-  image?: string | null;
-  variantId: string;
-}
+import { ShopifyProduct } from '@/lib/shopify';
 
 interface ProductGridProps {
-  products: Product[];
+  products: ShopifyProduct[];
   isLoading?: boolean;
+  selectable?: boolean;
+  selectedIds?: string[];
+  onSelect?: (product: ShopifyProduct) => void;
 }
 
 function ProductSkeleton() {
@@ -30,7 +23,13 @@ function ProductSkeleton() {
   );
 }
 
-export function ProductGrid({ products, isLoading = false }: ProductGridProps) {
+export function ProductGrid({ 
+  products, 
+  isLoading = false,
+  selectable = false,
+  selectedIds = [],
+  onSelect,
+}: ProductGridProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
@@ -56,7 +55,13 @@ export function ProductGrid({ products, isLoading = false }: ProductGridProps) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
       {products.map((product) => (
-        <ProductCard key={product.id} {...product} />
+        <ProductCard
+          key={product.node.id}
+          product={product}
+          selectable={selectable}
+          selected={selectedIds.includes(product.node.id)}
+          onSelect={() => onSelect?.(product)}
+        />
       ))}
     </div>
   );

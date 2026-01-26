@@ -1,17 +1,41 @@
-import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ExternalLink, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/stores/cartStore';
-import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 export function CartDrawer() {
-  const { items, isOpen, closeCart, updateQuantity, removeItem, subtotal } = useCartStore();
+  const { 
+    items, 
+    isOpen, 
+    isLoading, 
+    isSyncing,
+    closeCart, 
+    updateQuantity, 
+    removeItem, 
+    subtotal,
+    getCheckoutUrl,
+    syncCart,
+  } = useCartStore();
 
-  const formatPrice = (price: number) => {
+  // Sync cart when drawer opens
+  useEffect(() => {
+    if (isOpen) syncCart();
+  }, [isOpen, syncCart]);
+
+  const formatPrice = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(price);
+    }).format(amount);
+  };
+
+  const handleCheckout = () => {
+    const checkoutUrl = getCheckoutUrl();
+    if (checkoutUrl) {
+      window.open(checkoutUrl, '_blank');
+      closeCart();
+    }
   };
 
   return (
@@ -59,90 +83,91 @@ export function CartDrawer() {
                   </div>
                 ) : (
                   <ul className="space-y-4">
-                    {items.map((item) => (
-                      <li
-                        key={item.variantId}
-                        className="flex gap-4 rounded-lg border border-border p-4"
-                      >
-                        {/* Product Image */}
-                        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <ShoppingBag className="h-8 w-8 text-muted-foreground/50" />
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Product Details */}
-                        <div className="flex flex-1 flex-col">
-                          <div className="flex justify-between">
-                            <div>
-                              <h3 className="text-sm font-medium">{item.title}</h3>
-                              {item.variantTitle !== 'Default Title' && (
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                  {item.variantTitle}
-                                </p>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => removeItem(item.variantId)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+                    {items.map((item) => {
+                      const image = item.product.node.images?.edges?.[0]?.node;
+                      const price = parseFloat(item.price.amount);
+                      
+                      return (
+                        <li
+                          key={item.variantId}
+                          className="flex gap-4 rounded-lg border border-border p-4"
+                        >
+                          {/* Product Image */}
+                          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                            {image ? (
+                              <img
+                                src={image.url}
+                                alt={item.product.node.title}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center">
+                                <ShoppingBag className="h-8 w-8 text-muted-foreground/50" />
+                              </div>
+                            )}
                           </div>
 
-                          <div className="mt-auto flex items-center justify-between">
-                            {/* Quantity Controls */}
-                            <div className="flex items-center gap-2">
+                          {/* Product Details */}
+                          <div className="flex flex-1 flex-col">
+                            <div className="flex justify-between">
+                              <div>
+                                <h3 className="text-sm font-medium line-clamp-2">
+                                  {item.product.node.title}
+                                </h3>
+                                {item.variantTitle !== 'Default Title' && (
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    {item.variantTitle}
+                                  </p>
+                                )}
+                              </div>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() =>
-                                  updateQuantity(item.variantId, item.quantity - 1)
-                                }
+                                onClick={() => removeItem(item.variantId)}
+                                disabled={isLoading}
                               >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="w-8 text-center text-sm">
-                                {item.quantity}
-                              </span>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() =>
-                                  updateQuantity(item.variantId, item.quantity + 1)
-                                }
-                              >
-                                <Plus className="h-3 w-3" />
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
 
-                            {/* Price */}
-                            <div className="text-right">
-                              <p className="text-sm font-medium">
-                                {formatPrice(item.price * item.quantity)}
-                              </p>
-                              {item.compareAtPrice && item.compareAtPrice > item.price && (
-                                <p className="text-xs text-muted-foreground line-through">
-                                  {formatPrice(item.compareAtPrice * item.quantity)}
+                            <div className="mt-auto flex items-center justify-between">
+                              {/* Quantity Controls */}
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+                                  disabled={isLoading}
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                                <span className="w-8 text-center text-sm">
+                                  {item.quantity}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                                  disabled={isLoading}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              {/* Price */}
+                              <div className="text-right">
+                                <p className="text-sm font-medium">
+                                  {formatPrice(price * item.quantity)}
                                 </p>
-                              )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
@@ -157,8 +182,20 @@ export function CartDrawer() {
                   <p className="mb-4 text-center text-xs text-muted-foreground">
                     Shipping and taxes calculated at checkout
                   </p>
-                  <Button className="w-full" size="lg">
-                    Checkout
+                  <Button 
+                    className="w-full gap-2" 
+                    size="lg"
+                    onClick={handleCheckout}
+                    disabled={isLoading || isSyncing || items.length === 0}
+                  >
+                    {isLoading || isSyncing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <ExternalLink className="h-4 w-4" />
+                        Checkout
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
