@@ -239,7 +239,7 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Vintage Vibes is a sample pack with 10 compositions created by Sample Society; a fresh twist on beloved vintage sounds purposefully curated to bring life and color to your DAW. The expressive and soulful nature of these compositions are sure to make your imagination run wild to the endless possibilities offered from this soundkit. The lush synths and angelic melodies spread throughout this kit offer a comfortably nostalgic feel while opening new doors of creativity at the same time. Utilize these vintage vibes to create sounds similar to Anderson Paak, Flying Lotus, and Tame Impala.',
     artistsLike: ['Anderson Paak', 'Flying Lotus', 'Tame Impala'],
-    audioPreviewUrl: undefined, // Need Vintage Vibes preview
+    audioPreviewUrl: `${AUDIO_BASE}/vintage-vibes-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102272483582',
     shopifyWavProductId: 'gid://shopify/Product/8082826330366',
     shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102273204478',
