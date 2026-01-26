@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
@@ -10,25 +10,30 @@ import { useCartStore } from '@/stores/cartStore';
 import { findKitByHandle, sampleKits, SampleKit } from '@/data/sampleKits';
 import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
+import { useAudio } from '@/components/audio/AudioPlayer';
 
-// Local Audio Player for Product Page
+// Global Audio Player for Product Page with auto-pause
 function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
+  const playerId = useId();
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { registerAudio, unregisterAudio, isPlaying, play } = useAudio();
   const [progress, setProgress] = useState(0);
   const [bars] = useState(() => 
     Array.from({ length: 50 }, () => Math.random() * 0.6 + 0.2)
   );
 
-  const togglePlay = () => {
-    if (!audioRef.current || !audioUrl) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
+  useEffect(() => {
+    if (audioRef.current && audioUrl) {
+      registerAudio(playerId, audioRef.current);
     }
+    return () => {
+      unregisterAudio(playerId);
+    };
+  }, [playerId, audioUrl, registerAudio, unregisterAudio]);
+
+  const togglePlay = () => {
+    if (!audioUrl) return;
+    play(playerId, audioUrl);
   };
 
   const handleTimeUpdate = () => {
@@ -63,13 +68,14 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
     );
   }
 
+  const playing = isPlaying(playerId);
+
   return (
     <div className="flex items-center gap-4 rounded-lg border border-border bg-card/50 p-4">
       <audio
         ref={audioRef}
         src={audioUrl}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
         preload="metadata"
       />
       
@@ -79,7 +85,7 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
         className="h-12 w-12 rounded-full border-primary hover:bg-primary/20"
         onClick={togglePlay}
       >
-        {isPlaying ? (
+        {playing ? (
           <Pause className="h-5 w-5 text-primary" />
         ) : (
           <Play className="h-5 w-5 ml-0.5 text-primary" />
@@ -108,20 +114,24 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
   );
 }
 
-// Bundle Item Audio Player
-function BundleItemPlayer({ audioUrl }: { audioUrl?: string }) {
+// Bundle Item Audio Player with global audio control
+function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
+  const playerId = `bundle-${kitId}`;
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { registerAudio, unregisterAudio, isPlaying, play } = useAudio();
+
+  useEffect(() => {
+    if (audioRef.current && audioUrl) {
+      registerAudio(playerId, audioRef.current);
+    }
+    return () => {
+      unregisterAudio(playerId);
+    };
+  }, [playerId, audioUrl, registerAudio, unregisterAudio]);
 
   const togglePlay = () => {
-    if (!audioRef.current || !audioUrl) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
-    }
+    if (!audioUrl) return;
+    play(playerId, audioUrl);
   };
 
   if (!audioUrl) {
@@ -132,12 +142,13 @@ function BundleItemPlayer({ audioUrl }: { audioUrl?: string }) {
     );
   }
 
+  const playing = isPlaying(playerId);
+
   return (
     <>
       <audio
         ref={audioRef}
         src={audioUrl}
-        onEnded={() => setIsPlaying(false)}
         preload="none"
       />
       <Button
@@ -146,7 +157,7 @@ function BundleItemPlayer({ audioUrl }: { audioUrl?: string }) {
         className="h-8 w-8 flex-shrink-0"
         onClick={togglePlay}
       >
-        {isPlaying ? (
+        {playing ? (
           <Pause className="h-4 w-4" />
         ) : (
           <Play className="h-4 w-4 ml-0.5" />
@@ -186,7 +197,7 @@ function BundleItem({
         className="border-primary data-[state=checked]:bg-primary flex-shrink-0"
       />
       
-      <BundleItemPlayer audioUrl={kit.audioPreviewUrl} />
+      <BundleItemPlayer audioUrl={kit.audioPreviewUrl} kitId={kit.id} />
 
       <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
         <img src={kit.image} alt={kit.title} className="w-full h-full object-cover" />
@@ -448,13 +459,14 @@ export default function ProductPage() {
           Back to store
         </Link>
 
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Left Column - Product Image */}
+        <div className="grid gap-8 lg:grid-cols-[400px_1fr] lg:gap-12">
+          {/* Left Column - Product Image (smaller, centered) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            className="flex items-start justify-center lg:sticky lg:top-24"
           >
-            <div className="aspect-square overflow-hidden rounded-xl border border-border bg-card">
+            <div className="w-full max-w-[400px] aspect-square overflow-hidden rounded-xl border border-border bg-card">
               <img
                 src={kit.image}
                 alt={kit.title}
