@@ -185,6 +185,19 @@ function BundleItem({
 }) {
   const hasStems = !!kit.stemsHandle;
   const currentPrice = selectedFormat === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
+  
+  // Calculate savings
+  const wavSavings = kit.compareAtPrice ? kit.compareAtPrice - kit.wavPrice : 0;
+  const stemsSavings = kit.compareAtPrice && kit.stemsPrice ? kit.compareAtPrice - kit.stemsPrice : 0;
+  const currentSavings = selectedFormat === 'stems' ? stemsSavings : wavSavings;
+
+  // Handle format change - also select the item if not already selected
+  const handleFormatClick = (format: 'wav' | 'stems') => {
+    onFormatChange(format);
+    if (!isSelected) {
+      onToggle();
+    }
+  };
 
   return (
     <div className={cn(
@@ -225,9 +238,12 @@ function BundleItem({
               "cursor-pointer text-xs px-2 py-0",
               selectedFormat === 'wav' ? 'bg-primary' : 'hover:bg-primary/20'
             )}
-            onClick={() => onFormatChange('wav')}
+            onClick={() => handleFormatClick('wav')}
           >
             WAV
+            {wavSavings > 0 && selectedFormat === 'wav' && (
+              <span className="ml-1 text-green-400">(-${wavSavings.toFixed(0)})</span>
+            )}
           </Badge>
           {hasStems && (
             <Badge 
@@ -236,17 +252,25 @@ function BundleItem({
                 "cursor-pointer text-xs px-2 py-0",
                 selectedFormat === 'stems' ? 'bg-primary' : 'hover:bg-primary/20'
               )}
-              onClick={() => onFormatChange('stems')}
+              onClick={() => handleFormatClick('stems')}
             >
               WAV + Stems
+              {stemsSavings > 0 && selectedFormat === 'stems' && (
+                <span className="ml-1 text-green-400">(-${stemsSavings.toFixed(0)})</span>
+              )}
             </Badge>
           )}
         </div>
       </div>
 
-      <span className="font-semibold text-sm whitespace-nowrap">
-        ${currentPrice.toFixed(2)}
-      </span>
+      <div className="text-right">
+        <span className="font-semibold text-sm whitespace-nowrap">
+          ${currentPrice.toFixed(2)}
+        </span>
+        {currentSavings > 0 && (
+          <p className="text-xs text-green-500">Save ${currentSavings.toFixed(0)}</p>
+        )}
+      </div>
     </div>
   );
 }
