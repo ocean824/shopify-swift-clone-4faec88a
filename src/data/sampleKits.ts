@@ -124,7 +124,7 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'Unrequited Love Vol. 2 is a sample pack with 10 compositions created by ØCEAN @ Niko The Great; A beautiful album ready sample pack filled with romantic R&B live sheds and chopped dark soulful interpolations of those classic Unrequited Love Vol. 1 compositions. A sonder take on the many highs and lows of love this pack is full of plenty of different tonal structures & chops to take your emotional trap beats to the next level. These dark and unique sounds create a soundtrack to loving somebody and what it comes with. These lovely sounds pay homage to the likes of Tory Lanez, 6LACK, Brent Faiyaz and Great John.',
     artistsLike: ['Tory Lanez', '6LACK', 'Brent Faiyaz', 'Great John'],
-    audioPreviewUrl: undefined, // Need Unrequited Love Vol 2 preview
+    audioPreviewUrl: `${AUDIO_BASE}/unrequited-love-vol-2-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102255247614',
     shopifyWavProductId: 'gid://shopify/Product/8082816008446',
     shopifyStemsVariantId: 'gid://shopify/ProductVariant/44102256558334',
@@ -156,7 +156,7 @@ export const sampleKits: SampleKit[] = [
     category: 'sample-kit',
     description: 'VZN Compositions Vol. 1 is a sample pack with 10 compositions created by VZN; featuring futuristic soundscapes and innovative textures built for producers who want to push boundaries and create forward-thinking music. These visionary compositions capture the essence of modern trap production with sounds similar to Travis Scott, Kid Cudi, and Don Toliver.',
     artistsLike: ['Travis Scott', 'Kid Cudi', 'Don Toliver'],
-    audioPreviewUrl: undefined, // Need VZN preview
+    audioPreviewUrl: `${AUDIO_BASE}/vzn-compositions-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102259015934',
     shopifyWavProductId: 'gid://shopify/Product/8082817941758',
   },
@@ -305,7 +305,7 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'Flood Season Vol. 2 is a drumkit filled with one shots created by our in house producer VZN; an essential kit for making high quality trap beats sure to shake the room. The second volume to VZN\'s signature drumkit, look no further if you\'re looking for a one shot drum kit full of unique sounds that are up to industry standard trap sounds.',
     artistsLike: ['Lil Baby', 'Gunna', 'Young Thug'],
-    audioPreviewUrl: undefined, // Need Flood SZN Vol 2 preview
+    audioPreviewUrl: `${AUDIO_BASE}/flood-szn-vol-2-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102299287806',
     shopifyWavProductId: 'gid://shopify/Product/8082840977662',
   },
@@ -318,7 +318,7 @@ export const sampleKits: SampleKit[] = [
     category: 'drum-kit',
     description: 'Flood Season Vol. 1 is a drumkit filled with one shots created by our in house producer VZN; the original Flood SZN drum kit featuring hard-hitting one-shots that will make your drums stand out. Industry-quality sounds used in major placements with sounds similar to Metro Boomin, Southside, and TM88.',
     artistsLike: ['Metro Boomin', 'Southside', 'TM88'],
-    audioPreviewUrl: undefined, // Need Flood SZN Vol 1 preview
+    audioPreviewUrl: `${AUDIO_BASE}/flood-szn-vol-1-preview.mp3`,
     shopifyWavVariantId: 'gid://shopify/ProductVariant/44102296240382',
     shopifyWavProductId: 'gid://shopify/Product/8082839175422',
   },
