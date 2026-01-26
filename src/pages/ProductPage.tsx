@@ -11,7 +11,7 @@ import { findKitByHandle, sampleKits, SampleKit } from '@/data/sampleKits';
 import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 
-// Local Audio Player for Product Page - uses its own audio ref
+// Local Audio Player for Product Page
 function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -86,7 +86,6 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
         )}
       </Button>
 
-      {/* Waveform visualization */}
       <div 
         className="flex-1 flex items-center gap-[2px] h-10 cursor-pointer"
         onClick={handleClick}
@@ -109,8 +108,8 @@ function WaveformPlayer({ audioUrl, title }: { audioUrl?: string; title: string 
   );
 }
 
-// Bundle Item Audio Player - simpler inline player
-function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
+// Bundle Item Audio Player
+function BundleItemPlayer({ audioUrl }: { audioUrl?: string }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -127,7 +126,7 @@ function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: strin
 
   if (!audioUrl) {
     return (
-      <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+      <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" disabled>
         <Play className="h-4 w-4 ml-0.5 text-muted-foreground" />
       </Button>
     );
@@ -144,7 +143,7 @@ function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: strin
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 flex-shrink-0"
         onClick={togglePlay}
       >
         {isPlaying ? (
@@ -157,85 +156,24 @@ function BundleItemPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: strin
   );
 }
 
-// Bundle Item Component
+// Bundle Item Component - matches reference layout
 function BundleItem({ 
   kit, 
   isSelected, 
   selectedFormat,
   onToggle,
   onFormatChange,
+  isCurrentProduct,
 }: { 
   kit: SampleKit;
   isSelected: boolean;
   selectedFormat: 'wav' | 'stems';
   onToggle: () => void;
   onFormatChange: (format: 'wav' | 'stems') => void;
+  isCurrentProduct?: boolean;
 }) {
   const hasStems = !!kit.stemsHandle;
   const currentPrice = selectedFormat === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
-  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
-
-  const handleFormatClick = async (format: 'wav' | 'stems') => {
-    onFormatChange(format);
-    
-    if (!isSelected) {
-      onToggle();
-    }
-    
-    const price = format === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
-    const variantId = format === 'stems' && kit.shopifyStemsVariantId
-      ? kit.shopifyStemsVariantId
-      : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${format}`;
-    
-    const productId = format === 'stems' && kit.shopifyStemsProductId
-      ? kit.shopifyStemsProductId
-      : kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
-
-    const productData = {
-      node: {
-        id: productId,
-        title: kit.title,
-        description: kit.description,
-        handle: format === 'stems' && kit.stemsHandle ? kit.stemsHandle : kit.wavHandle,
-        productType: kit.category,
-        vendor: 'Samplesociety',
-        priceRange: {
-          minVariantPrice: { amount: String(price), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(price), currencyCode: 'USD' },
-        },
-        compareAtPriceRange: {
-          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-        },
-        images: {
-          edges: [{ node: { url: kit.image, altText: kit.title } }],
-        },
-        variants: {
-          edges: [{
-            node: {
-              id: variantId,
-              title: format === 'stems' ? 'WAV + Stems' : 'WAV',
-              price: { amount: String(price), currencyCode: 'USD' },
-              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
-              availableForSale: true,
-              selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
-            },
-          }],
-        },
-        options: [{ name: 'Format', values: kit.stemsHandle ? ['WAV', 'WAV + Stems'] : ['WAV'] }],
-      },
-    };
-
-    await addItem({
-      product: productData,
-      variantId: variantId,
-      variantTitle: format === 'stems' ? 'WAV + Stems' : 'WAV',
-      price: { amount: String(price), currencyCode: 'USD' },
-      quantity: 1,
-      selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
-    });
-    openCart();
-  };
 
   return (
     <div className={cn(
@@ -245,22 +183,30 @@ function BundleItem({
       <Checkbox
         checked={isSelected}
         onCheckedChange={onToggle}
-        className="border-primary data-[state=checked]:bg-primary"
+        className="border-primary data-[state=checked]:bg-primary flex-shrink-0"
       />
       
-      <BundleItemPlayer audioUrl={kit.audioPreviewUrl} kitId={kit.id} />
+      <BundleItemPlayer audioUrl={kit.audioPreviewUrl} />
 
       <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0">
         <img src={kit.image} alt={kit.title} className="w-full h-full object-cover" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <Link 
-          to={`/product/${kit.wavHandle}`}
-          className="font-medium text-sm hover:text-primary transition-colors line-clamp-1"
-        >
-          {kit.title}
-        </Link>
+        <div className="flex items-center gap-2">
+          {isCurrentProduct && (
+            <span className="text-xs text-muted-foreground">This item:</span>
+          )}
+          <Link 
+            to={`/product/${kit.wavHandle}`}
+            className={cn(
+              "font-medium text-sm transition-colors line-clamp-1",
+              isCurrentProduct ? "text-primary" : "hover:text-primary"
+            )}
+          >
+            {kit.title}
+          </Link>
+        </div>
         <div className="flex items-center gap-2 mt-1">
           <Badge 
             variant={selectedFormat === 'wav' ? 'default' : 'outline'}
@@ -268,7 +214,7 @@ function BundleItem({
               "cursor-pointer text-xs px-2 py-0",
               selectedFormat === 'wav' ? 'bg-primary' : 'hover:bg-primary/20'
             )}
-            onClick={() => handleFormatClick('wav')}
+            onClick={() => onFormatChange('wav')}
           >
             WAV
           </Badge>
@@ -279,7 +225,7 @@ function BundleItem({
                 "cursor-pointer text-xs px-2 py-0",
                 selectedFormat === 'stems' ? 'bg-primary' : 'hover:bg-primary/20'
               )}
-              onClick={() => handleFormatClick('stems')}
+              onClick={() => onFormatChange('stems')}
             >
               WAV + Stems
             </Badge>
@@ -309,7 +255,7 @@ export default function ProductPage() {
   // Find kit from local data
   const kit = handle ? findKitByHandle(handle) : undefined;
 
-  // Initialize bundle items
+  // Initialize bundle items - current product first, then others
   useEffect(() => {
     if (kit) {
       const otherKits = sampleKits
@@ -412,66 +358,6 @@ export default function ProductPage() {
     openCart();
   };
 
-  const handleFormatAddToCart = async (format: 'wav' | 'stems') => {
-    setSelectedFormat(format);
-    
-    const price = format === 'stems' && kit.stemsPrice ? kit.stemsPrice : kit.wavPrice;
-    const variantId = format === 'stems' && kit.shopifyStemsVariantId 
-      ? kit.shopifyStemsVariantId 
-      : kit.shopifyWavVariantId || `gid://shopify/ProductVariant/${kit.id}-${format}`;
-    
-    const productId = format === 'stems' && kit.shopifyStemsProductId
-      ? kit.shopifyStemsProductId
-      : kit.shopifyWavProductId || `gid://shopify/Product/${kit.id}`;
-    
-    const productHandle = format === 'stems' && kit.stemsHandle ? kit.stemsHandle : kit.wavHandle;
-    
-    const productData = {
-      node: {
-        id: productId,
-        title: kit.title,
-        description: kit.description,
-        handle: productHandle,
-        productType: kit.category,
-        vendor: 'Samplesociety',
-        priceRange: {
-          minVariantPrice: { amount: String(price), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(price), currencyCode: 'USD' },
-        },
-        compareAtPriceRange: {
-          minVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-          maxVariantPrice: { amount: String(kit.compareAtPrice || 0), currencyCode: 'USD' },
-        },
-        images: {
-          edges: [{ node: { url: kit.image, altText: kit.title } }],
-        },
-        variants: {
-          edges: [{
-            node: {
-              id: variantId,
-              title: format === 'stems' ? 'WAV + Stems' : 'WAV',
-              price: { amount: String(price), currencyCode: 'USD' },
-              compareAtPrice: kit.compareAtPrice ? { amount: String(kit.compareAtPrice), currencyCode: 'USD' } : null,
-              availableForSale: true,
-              selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
-            },
-          }],
-        },
-        options: [{ name: 'Format', values: kit.stemsHandle ? ['WAV', 'WAV + Stems'] : ['WAV'] }],
-      },
-    };
-
-    await addItem({
-      product: productData,
-      variantId: variantId,
-      variantTitle: format === 'stems' ? 'WAV + Stems' : 'WAV',
-      price: { amount: String(price), currencyCode: 'USD' },
-      quantity: 1,
-      selectedOptions: [{ name: 'Format', value: format === 'stems' ? 'WAV + Stems' : 'WAV' }],
-    });
-    openCart();
-  };
-
   const handleAddBundleToCart = async () => {
     for (const item of selectedBundleItems) {
       const format = item.format;
@@ -563,103 +449,36 @@ export default function ProductPage() {
         </Link>
 
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          {/* Left Column - Product Image (centered/aligned left) */}
+          {/* Left Column - Product Image (large, like reference) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex justify-start"
+            className="sticky top-24"
           >
-            <div className="w-full max-w-md aspect-square overflow-hidden rounded-xl border border-border bg-card">
+            <div className="aspect-square overflow-hidden rounded-xl border border-border bg-card">
               <img
                 src={kit.image}
                 alt={kit.title}
                 className="h-full w-full object-cover"
               />
             </div>
+            
+            {/* Audio Player below image */}
+            <div className="mt-4">
+              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
+            </div>
           </motion.div>
 
-          {/* Right Column - Product Info */}
+          {/* Right Column - Product Info & Bundle Builder */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col"
           >
-            {/* Category Label */}
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {kit.category.replace('-', ' ')}
-            </span>
-
-            {/* Title */}
-            <h1 className="mt-2 text-3xl font-bold md:text-4xl">{kit.title}</h1>
-
-            {/* Price */}
-            <div className="mt-4 flex items-baseline gap-3">
-              {isOnSale && (
-                <span className="text-sm font-semibold text-primary uppercase">Sale</span>
-              )}
-              <span className="text-3xl font-bold text-primary">${currentPrice.toFixed(2)}</span>
-              {isOnSale && selectedFormat === 'wav' && (
-                <span className="text-xl text-muted-foreground line-through">
-                  ${kit.compareAtPrice?.toFixed(2)}
-                </span>
-              )}
-            </div>
-
-            {/* Audio Player */}
-            <div className="mt-6">
-              <WaveformPlayer audioUrl={kit.audioPreviewUrl} title={kit.title} />
-            </div>
-
-            {/* Description */}
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider">Description</h3>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                {kit.description}
-              </p>
-              {kit.artistsLike && kit.artistsLike.length > 0 && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Perfect for artists like {kit.artistsLike.join(', ')}.
-                </p>
-              )}
-            </div>
-
-            {/* Format Selector - Clicking adds to cart */}
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">Format (Click to Add to Cart)</h3>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant={selectedFormat === 'wav' ? 'default' : 'outline'}
-                  onClick={() => handleFormatAddToCart('wav')}
-                  disabled={cartLoading}
-                  className={cn(
-                    "px-6 gap-2",
-                    selectedFormat === 'wav' && "bg-primary hover:bg-primary/90"
-                  )}
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  WAV - ${kit.wavPrice}
-                </Button>
-                {kit.stemsHandle && kit.stemsPrice && (
-                  <Button
-                    variant={selectedFormat === 'stems' ? 'default' : 'outline'}
-                    onClick={() => handleFormatAddToCart('stems')}
-                    disabled={cartLoading}
-                    className={cn(
-                      "px-6 gap-2",
-                      selectedFormat === 'stems' && "bg-primary hover:bg-primary/90"
-                    )}
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    WAV + Stems - ${kit.stemsPrice}
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Add to Cart Button */}
+            {/* Add to Cart Button - Primary CTA at top like reference */}
             <Button
               size="lg"
-              className="mt-8 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6"
               onClick={handleAddToCart}
               disabled={cartLoading}
             >
@@ -667,71 +486,81 @@ export default function ProductPage() {
               Add to Cart
             </Button>
 
-            {/* License Info */}
-            <p className="mt-4 text-xs text-muted-foreground">
-              By purchasing, you agree to our{' '}
-              <Link to="/terms" className="text-primary hover:underline">
-                License Agreement
-              </Link>
-            </p>
+            {/* Create Your Own Bundle Section */}
+            <section className="mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold">
+                  Create Your Own Bundle
+                </h2>
+              </div>
+
+              {/* Bundle Preview Thumbnails with + signs */}
+              <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-2">
+                {selectedBundleItems.map((item, index) => (
+                  <div key={item.kit.id} className="flex items-center">
+                    <div className="w-14 h-14 rounded overflow-hidden border border-border flex-shrink-0">
+                      <img 
+                        src={item.kit.image} 
+                        alt={item.kit.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {index < selectedBundleItems.length - 1 && (
+                      <span className="mx-1 text-muted-foreground text-lg">+</span>
+                    )}
+                  </div>
+                ))}
+                <div className="ml-auto text-right pl-4">
+                  <span className="text-xs text-muted-foreground">Total</span>
+                  <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* Add Bundle to Cart - Outline style like reference */}
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full gap-2 mb-6 border-foreground text-foreground hover:bg-foreground hover:text-background"
+                onClick={handleAddBundleToCart}
+                disabled={cartLoading || selectedBundleItems.length === 0}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                ADD TO CART
+              </Button>
+
+              {/* Bundle Items List */}
+              <div className="space-y-2">
+                {bundleItems.map((item, index) => (
+                  <BundleItem
+                    key={item.kit.id}
+                    kit={item.kit}
+                    isSelected={item.selected}
+                    selectedFormat={item.format}
+                    onToggle={() => toggleBundleItem(item.kit.id)}
+                    onFormatChange={(format) => updateBundleFormat(item.kit.id, format)}
+                    isCurrentProduct={index === 0}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* Product Description below bundle */}
+            <div className="mt-8 pt-8 border-t border-border">
+              <h3 className="text-sm font-semibold uppercase tracking-wider mb-3">About This Kit</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {kit.description}
+              </p>
+              
+              {/* License Info */}
+              <p className="mt-6 text-xs text-muted-foreground">
+                By purchasing, you agree to our{' '}
+                <Link to="/terms" className="text-primary hover:underline">
+                  Master Use License Agreement
+                </Link>
+              </p>
+            </div>
           </motion.div>
         </div>
-
-        {/* Create Your Own Bundle Section */}
-        <section className="mt-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold uppercase tracking-tight">
-              Create Your Own Bundle
-            </h2>
-            <div className="text-right">
-              <span className="text-xs text-muted-foreground uppercase">Total</span>
-              <p className="text-2xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
-            </div>
-          </div>
-
-          {/* Bundle Preview Thumbnails */}
-          <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-            {selectedBundleItems.map((item, index) => (
-              <div key={item.kit.id} className="flex items-center">
-                <div className="w-16 h-16 rounded overflow-hidden border border-border flex-shrink-0">
-                  <img 
-                    src={item.kit.image} 
-                    alt={item.kit.title} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {index < selectedBundleItems.length - 1 && (
-                  <span className="mx-2 text-muted-foreground">+</span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Add Bundle to Cart */}
-          <Button
-            size="lg"
-            className="w-full gap-2 mb-6 bg-transparent border-2 border-foreground text-foreground hover:bg-foreground hover:text-background"
-            onClick={handleAddBundleToCart}
-            disabled={cartLoading || selectedBundleItems.length === 0}
-          >
-            <ShoppingCart className="h-5 w-5" />
-            ADD TO CART
-          </Button>
-
-          {/* Bundle Items List */}
-          <div className="space-y-3">
-            {bundleItems.map((item) => (
-              <BundleItem
-                key={item.kit.id}
-                kit={item.kit}
-                isSelected={item.selected}
-                selectedFormat={item.format}
-                onToggle={() => toggleBundleItem(item.kit.id)}
-                onFormatChange={(format) => updateBundleFormat(item.kit.id, format)}
-              />
-            ))}
-          </div>
-        </section>
       </div>
     </Layout>
   );
