@@ -228,7 +228,7 @@ function FeaturedBundleCard({ kit }: { kit: SampleKit }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="mx-auto max-w-2xl"
+      className="mx-auto max-w-md"
     >
       <Link to={`/product/${kit.wavHandle}`} className="group block">
         <div className="relative overflow-hidden rounded-xl bg-card border-2 border-primary/50 transition-all duration-300 hover:border-primary hover:shadow-xl hover:shadow-primary/20">
