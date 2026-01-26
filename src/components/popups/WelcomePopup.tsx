@@ -94,9 +94,9 @@ export function WelcomePopup() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-md">
               {/* Header with gradient */}
               <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 p-6 text-center relative">
                 <button
