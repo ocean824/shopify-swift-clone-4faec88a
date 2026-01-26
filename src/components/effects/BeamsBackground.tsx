@@ -46,7 +46,7 @@ export function BeamsBackground() {
     const drawBeams = () => {
       const time = Date.now() * 0.0003;
       
-      // Draw multiple beams
+      // Draw multiple beams - greyscale glow
       for (let i = 0; i < 5; i++) {
         const gradient = ctx.createLinearGradient(
           canvas.width * 0.5 + Math.sin(time + i) * 200,
@@ -55,9 +55,9 @@ export function BeamsBackground() {
           canvas.height
         );
         
-        gradient.addColorStop(0, 'hsla(0, 72%, 51%, 0)');
-        gradient.addColorStop(0.5, `hsla(0, 72%, 51%, ${0.03 + Math.sin(time * 2 + i) * 0.02})`);
-        gradient.addColorStop(1, 'hsla(0, 72%, 51%, 0)');
+        gradient.addColorStop(0, 'hsla(0, 0%, 30%, 0)');
+        gradient.addColorStop(0.5, `hsla(0, 0%, 40%, ${0.04 + Math.sin(time * 2 + i) * 0.02})`);
+        gradient.addColorStop(1, 'hsla(0, 0%, 30%, 0)');
         
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -106,10 +106,10 @@ export function BeamsBackground() {
         className="pointer-events-none fixed inset-0 z-0"
         style={{ opacity: 0.6 }}
       />
-      {/* Static gradient overlay beams */}
+      {/* Static gradient overlay beams - greyscale */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <motion.div
-          className="absolute -left-1/4 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
+          className="absolute -left-1/4 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-muted-foreground/5 to-transparent"
           animate={{
             x: ['0%', '200%'],
           }}
@@ -120,7 +120,7 @@ export function BeamsBackground() {
           }}
         />
         <motion.div
-          className="absolute -right-1/4 top-0 h-full w-1/3 bg-gradient-to-l from-transparent via-primary/3 to-transparent"
+          className="absolute -right-1/4 top-0 h-full w-1/3 bg-gradient-to-l from-transparent via-muted-foreground/3 to-transparent"
           animate={{
             x: ['0%', '-200%'],
           }}

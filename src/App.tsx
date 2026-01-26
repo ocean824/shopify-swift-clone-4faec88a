@@ -18,6 +18,7 @@ import SocietyPage from "./pages/SocietyPage";
 import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
 import { useCartSync } from "./hooks/useCartSync";
+import { AudioProvider } from "./components/audio/AudioPlayer";
 
 const queryClient = new QueryClient();
 
@@ -47,11 +48,13 @@ function AppContent() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <AudioProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AudioProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
