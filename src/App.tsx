@@ -15,6 +15,7 @@ import CreditsPage from "./pages/CreditsPage";
 import ContactPage from "./pages/ContactPage";
 import BeatsPage from "./pages/BeatsPage";
 import ApplyPage from "./pages/ApplyPage";
+import ApplicationFormPage from "./pages/ApplicationFormPage";
 import SocietyPage from "./pages/SocietyPage";
 import SubscribePage from "./pages/SubscribePage";
 import NotFound from "./pages/NotFound";
@@ -40,6 +41,7 @@ function AppContent() {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/beats" element={<BeatsPage />} />
       <Route path="/apply" element={<ApplyPage />} />
+      <Route path="/apply/form" element={<ApplicationFormPage />} />
       <Route path="/society" element={<SocietyPage />} />
       <Route path="/subscribe" element={<SubscribePage />} />
       <Route path="*" element={<NotFound />} />
