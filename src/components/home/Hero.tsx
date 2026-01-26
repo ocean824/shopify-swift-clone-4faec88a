@@ -22,7 +22,7 @@ export function Hero() {
           className="mx-auto mt-4 max-w-2xl text-muted-foreground"
         >
           Premium sample packs, MIDI kits, and production resources for the modern music producer. 
-          100% royalty-free.
+          Master use licensed.
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}

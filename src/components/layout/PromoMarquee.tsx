@@ -3,7 +3,7 @@ interface PromoMarqueeProps {
 }
 
 export function PromoMarquee({ 
-  message = "🔥 ALL KITS BUNDLE 2025 NOW AVAILABLE • FREE INSTANT DOWNLOAD • ROYALTY FREE • 100% ORIGINAL SOUNDS • " 
+  message = "🔥 ALL KITS BUNDLE 2025 NOW AVAILABLE • FREE INSTANT DOWNLOAD • MASTER USE • 100% ORIGINAL SOUNDS • " 
 }: PromoMarqueeProps) {
   const messages = Array(8).fill(message).join('');
 
