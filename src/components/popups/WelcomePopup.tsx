@@ -96,68 +96,68 @@ export function WelcomePopup() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden w-full max-w-md">
+            <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden w-full max-w-xs">
               {/* Header with gradient */}
-              <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 p-6 text-center relative">
+              <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 p-4 text-center relative">
                 <button
                   onClick={handleClose}
-                  className="absolute top-3 right-3 p-1 rounded-full hover:bg-background/50 transition-colors"
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-background/50 transition-colors"
                 >
-                  <X className="h-5 w-5 text-muted-foreground" />
+                  <X className="h-4 w-4 text-muted-foreground" />
                 </button>
                 
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-                  <Gift className="h-8 w-8 text-primary" />
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 mb-2">
+                  <Gift className="h-5 w-5 text-primary" />
                 </div>
                 
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Unlock 10% Extra Off
+                <h2 className="text-lg font-bold text-foreground mb-1">
+                  Unlock 10% Off
                 </h2>
-                <p className="text-muted-foreground text-sm">
-                  Join our community and get an extra 10% off all bundles!
+                <p className="text-muted-foreground text-xs">
+                  Join & get 10% off your order!
                 </p>
               </div>
               
               {/* Form */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="popup-name">Name</Label>
+              <form onSubmit={handleSubmit} className="p-4 space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="popup-name" className="text-xs">Name</Label>
                   <Input
                     id="popup-name"
                     placeholder="Your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="bg-background"
+                    className="bg-background h-9 text-sm"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="popup-email">Email</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="popup-email" className="text-xs">Email</Label>
                   <Input
                     id="popup-email"
                     type="email"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-background"
+                    className="bg-background h-9 text-sm"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="popup-phone">Phone Number</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="popup-phone" className="text-xs">Phone</Label>
                   <Input
                     id="popup-phone"
                     type="tel"
                     placeholder="Your phone number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="bg-background"
+                    className="bg-background h-9 text-sm"
                   />
                 </div>
                 
                 <Button
                   type="submit"
-                  size="lg"
+                  size="sm"
                   className="w-full gap-2"
                   disabled={isSubmitting}
                 >
@@ -165,14 +165,14 @@ export function WelcomePopup() {
                     'Unlocking...'
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4" />
-                      Unlock My Discount
+                      <Sparkles className="h-3 w-3" />
+                      Unlock Discount
                     </>
                   )}
                 </Button>
                 
-                <p className="text-xs text-center text-muted-foreground">
-                  We respect your privacy. Unsubscribe anytime.
+                <p className="text-[10px] text-center text-muted-foreground">
+                  We respect your privacy.
                 </p>
               </form>
             </div>
