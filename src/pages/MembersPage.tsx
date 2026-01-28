@@ -27,6 +27,33 @@ interface PantheonContent {
   external_url: string | null;
 }
 
+// Members-only kits configuration - add each kit you upload to Shopify here
+interface MembersKit {
+  id: string;
+  shopifyProductTitle: string; // Exact title as it appears in Shopify
+  displayTitle: string;
+  discountCode: string; // Format: [SHORTENED_NAME]100
+  description: string;
+}
+
+const MEMBERS_ONLY_KITS: MembersKit[] = [
+  {
+    id: 'pantheon-members-kit-1',
+    shopifyProductTitle: 'Pantheon Members Only Kits', // Update this to match exact Shopify title
+    displayTitle: 'Pantheon Members Only Kits',
+    discountCode: 'PANTHEONKITS100',
+    description: 'Exclusive samples for Pantheon members',
+  },
+  // Add more kits here as you upload them to Shopify:
+  // {
+  //   id: 'pantheon-kit-2',
+  //   shopifyProductTitle: 'Exact Shopify Product Title',
+  //   displayTitle: 'Display Name',
+  //   discountCode: 'KITNAME100',
+  //   description: 'Description',
+  // },
+];
+
 const MembersPage = () => {
   const { user, loading, subscription, signOut, checkSubscription } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +64,7 @@ const MembersPage = () => {
   const [loadingContent, setLoadingContent] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [downloadingMembersKit, setDownloadingMembersKit] = useState(false);
+  const [downloadingKitId, setDownloadingKitId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -166,14 +193,14 @@ const MembersPage = () => {
     }
   };
 
-  const handleMembersKitDownload = async () => {
-    setDownloadingMembersKit(true);
+  const handleMembersKitDownload = async (kit: MembersKit) => {
+    setDownloadingKitId(kit.id);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
         body: { 
-          purchaseId: 'pantheon-members-kit', 
-          productName: 'Pantheon Members Only Kits',
-          discountCode: 'PANTHEONKITS100'
+          purchaseId: kit.id, 
+          productName: kit.shopifyProductTitle,
+          discountCode: kit.discountCode
         },
       });
       
@@ -194,7 +221,7 @@ const MembersPage = () => {
         variant: "destructive",
       });
     } finally {
-      setDownloadingMembersKit(false);
+      setDownloadingKitId(null);
     }
   };
 
@@ -370,35 +397,44 @@ const MembersPage = () => {
             
             {subscription.subscribed ? (
               <div className="space-y-4">
-                {/* Active content - Members Only Sample Kit */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-primary/30 hover:border-primary transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-primary font-medium uppercase tracking-wider">
-                        Samples
-                      </span>
-                      <h3 className="font-semibold mt-1">Pantheon Members Only Kits</h3>
-                      <p className="text-sm text-muted-foreground mt-1">Exclusive samples for Pantheon members</p>
-                    </div>
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      onClick={handleMembersKitDownload}
-                      disabled={downloadingMembersKit}
-                    >
-                      {downloadingMembersKit ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Download className="h-4 w-4 mr-2" />
-                      )}
-                      Download
-                    </Button>
+                {/* Members Only Sample Kits */}
+                {MEMBERS_ONLY_KITS.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-xs text-primary font-medium uppercase tracking-wider">
+                      Samples
+                    </h3>
+                    {MEMBERS_ONLY_KITS.map((kit, index) => (
+                      <motion.div
+                        key={kit.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-primary/30 hover:border-primary transition-colors"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold truncate">{kit.displayTitle}</h4>
+                            <p className="text-sm text-muted-foreground mt-0.5">{kit.description}</p>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            onClick={() => handleMembersKitDownload(kit)}
+                            disabled={downloadingKitId === kit.id}
+                            className="flex-shrink-0"
+                          >
+                            {downloadingKitId === kit.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            ) : (
+                              <Download className="h-4 w-4 mr-2" />
+                            )}
+                            Download
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
-                </motion.div>
+                )}
 
                 {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
