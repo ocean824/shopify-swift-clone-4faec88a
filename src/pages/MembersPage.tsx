@@ -37,6 +37,7 @@ const MembersPage = () => {
   const [loadingContent, setLoadingContent] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [downloadingMembersKit, setDownloadingMembersKit] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -162,6 +163,34 @@ const MembersPage = () => {
       });
     } finally {
       setResendingId(null);
+    }
+  };
+
+  const handleMembersKitDownload = async () => {
+    setDownloadingMembersKit(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('resend-download', {
+        body: { purchaseId: 'members-kit', productName: 'Sinister Wrld Members Only Sample Kit' },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.checkoutUrl) {
+        toast({
+          title: "Download Ready!",
+          description: "Complete the free checkout to receive your download email.",
+        });
+        window.open(data.checkoutUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Error creating download:', err);
+      toast({
+        title: "Error",
+        description: "Failed to create download. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingMembersKit(false);
     }
   };
 
@@ -354,9 +383,14 @@ const MembersPage = () => {
                     <Button 
                       size="sm" 
                       variant="secondary" 
-                      onClick={() => window.open('https://www.dropbox.com/scl/fo/py6d08xszo6cll8j7seor/h?rlkey=c0cmxyurvsp8fae63bjf95xd4&st=ewlptgim&dl=0', '_blank')}
+                      onClick={handleMembersKitDownload}
+                      disabled={downloadingMembersKit}
                     >
-                      <Download className="h-4 w-4 mr-2" />
+                      {downloadingMembersKit ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Download className="h-4 w-4 mr-2" />
+                      )}
                       Download
                     </Button>
                   </div>
