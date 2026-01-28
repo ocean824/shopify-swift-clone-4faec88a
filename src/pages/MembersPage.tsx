@@ -170,7 +170,11 @@ const MembersPage = () => {
     setDownloadingMembersKit(true);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
-        body: { purchaseId: 'members-kit', productName: 'Sinister Wrld Members Only Sample Kit' },
+        body: { 
+          purchaseId: 'pantheon-members-kit', 
+          productName: 'Pantheon Members Only Kits',
+          discountCode: 'PANTHEONKITS100'
+        },
       });
       
       if (error) throw error;
@@ -377,7 +381,7 @@ const MembersPage = () => {
                       <span className="text-xs text-primary font-medium uppercase tracking-wider">
                         Samples
                       </span>
-                      <h3 className="font-semibold mt-1">Members Only Sample Kits</h3>
+                      <h3 className="font-semibold mt-1">Pantheon Members Only Kits</h3>
                       <p className="text-sm text-muted-foreground mt-1">Exclusive samples for Pantheon members</p>
                     </div>
                     <Button 

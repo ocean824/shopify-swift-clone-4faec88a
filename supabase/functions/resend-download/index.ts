@@ -14,7 +14,7 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
 const SHOPIFY_STORE_DOMAIN = 'samplesociety.myshopify.com';
 const SHOPIFY_API_VERSION = '2025-07';
 const SHOPIFY_STOREFRONT_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/${SHOPIFY_API_VERSION}/graphql.json`;
-const REDOWNLOAD_DISCOUNT_CODE = 'REDOWNLOAD100';
+const DEFAULT_DISCOUNT_CODE = 'REDOWNLOAD100';
 
 // GraphQL query to search for product by title
 const PRODUCT_SEARCH_QUERY = `
@@ -104,12 +104,13 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { purchaseId, productName } = await req.json();
+    const { purchaseId, productName, discountCode } = await req.json();
     if (!purchaseId || !productName) {
       throw new Error("Purchase ID and product name are required");
     }
 
-    logStep("Redownload request received", { purchaseId, productName, email: user.email });
+    const codeToUse = discountCode || DEFAULT_DISCOUNT_CODE;
+    logStep("Download request received", { purchaseId, productName, discountCode: codeToUse, email: user.email });
 
     // Search for the product in Shopify by title
     const searchData = await storefrontRequest(PRODUCT_SEARCH_QUERY, {
@@ -128,11 +129,11 @@ serve(async (req) => {
 
     logStep("Product found", { productId: product.id, variantId });
 
-    // Create a cart with the product and 100% discount code
+    // Create a cart with the product and discount code
     const cartData = await storefrontRequest(CART_CREATE_MUTATION, {
       input: {
         lines: [{ quantity: 1, merchandiseId: variantId }],
-        discountCodes: [REDOWNLOAD_DISCOUNT_CODE],
+        discountCodes: [codeToUse],
         buyerIdentity: {
           email: user.email,
         },
