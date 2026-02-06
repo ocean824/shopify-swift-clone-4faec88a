@@ -322,11 +322,6 @@ export function CartDrawer() {
                     </div>
                   )}
                   
-                  {bundleDiscountPercent() < 0.50 && totalItems() >= 2 && (
-                    <p className="mb-3 text-center text-xs text-primary">
-                      Add {5 - totalItems()} more item{5 - totalItems() !== 1 ? 's' : ''} for 50% off!
-                    </p>
-                  )}
                   
                   <p className="mb-4 text-center text-xs text-muted-foreground">
                     Shipping and taxes calculated at checkout
