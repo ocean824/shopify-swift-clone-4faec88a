@@ -131,15 +131,12 @@ export function Header() {
             className="lg:hidden overflow-hidden"
           >
             <div className="border-t border-border bg-background px-4 py-4">
-              {navigation.map((item) => (
+              {navigation.filter(item => !item.highlight).map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={cn(
-                    "block py-3 text-sm font-semibold uppercase tracking-wider transition-colors",
-                    item.highlight 
-                      ? "text-primary" 
-                      : "text-muted-foreground hover:text-foreground",
+                    "block py-3 text-sm font-semibold uppercase tracking-wider transition-colors text-muted-foreground hover:text-foreground",
                     location.pathname === item.href && "text-foreground"
                   )}
                   onClick={() => setMobileMenuOpen(false)}
