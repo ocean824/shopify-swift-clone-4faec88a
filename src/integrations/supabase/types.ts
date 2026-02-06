@@ -127,6 +127,199 @@ export type Database = {
         }
         Relationships: []
       }
+      email_send_log: {
+        Row: {
+          clicked_at: string | null
+          email_to: string
+          email_type: string
+          id: string
+          opened_at: string | null
+          resend_id: string | null
+          sent_at: string
+          sequence_name: string | null
+          status: string | null
+          subject: string
+          subscriber_id: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          email_to: string
+          email_type: string
+          id?: string
+          opened_at?: string | null
+          resend_id?: string | null
+          sent_at?: string
+          sequence_name?: string | null
+          status?: string | null
+          subject: string
+          subscriber_id?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          email_to?: string
+          email_type?: string
+          id?: string
+          opened_at?: string | null
+          resend_id?: string | null
+          sent_at?: string
+          sequence_name?: string | null
+          status?: string | null
+          subject?: string
+          subscriber_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_send_log_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_sequence_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number | null
+          id: string
+          is_active: boolean | null
+          last_email_sent_at: string | null
+          next_email_scheduled_at: string | null
+          sequence_name: string
+          started_at: string
+          subscriber_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_email_sent_at?: string | null
+          next_email_scheduled_at?: string | null
+          sequence_name: string
+          started_at?: string
+          subscriber_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_email_sent_at?: string | null
+          next_email_scheduled_at?: string | null
+          sequence_name?: string
+          started_at?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sequence_progress_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean | null
+          last_name: string | null
+          last_order_at: string | null
+          segment: string
+          shopify_customer_id: string | null
+          subscribed_at: string
+          tags: string[] | null
+          total_orders: number | null
+          total_spent: number | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          last_order_at?: string | null
+          segment?: string
+          shopify_customer_id?: string | null
+          subscribed_at?: string
+          tags?: string[] | null
+          total_orders?: number | null
+          total_spent?: number | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string | null
+          last_order_at?: string | null
+          segment?: string
+          shopify_customer_id?: string | null
+          subscribed_at?: string
+          tags?: string[] | null
+          total_orders?: number | null
+          total_spent?: number | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          delay_hours: number | null
+          email_type: string
+          html_content: string
+          id: string
+          is_active: boolean | null
+          name: string
+          sequence_name: string
+          step_number: number
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delay_hours?: number | null
+          email_type: string
+          html_content: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          sequence_name: string
+          step_number: number
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delay_hours?: number | null
+          email_type?: string
+          html_content?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          sequence_name?: string
+          step_number?: number
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lifetime_access_codes: {
         Row: {
           code_used: string
@@ -265,6 +458,36 @@ export type Database = {
           purchase_date?: string
           stripe_session_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      shopify_webhook_log: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json | null
+          processed: boolean | null
+          processed_at: string | null
+          shopify_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          shopify_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          shopify_id?: string | null
         }
         Relationships: []
       }
