@@ -303,8 +303,8 @@ const Index = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Wide banner with cropping to center on SAMPLE SOCIETY text */}
-            <div className="relative w-full h-48 md:h-64 lg:h-80 overflow-hidden">
+            {/* Wide banner with consistent cropping across all devices */}
+            <div className="relative w-full aspect-[16/6] md:aspect-[16/5] lg:aspect-[16/4] overflow-hidden">
               <img 
                 src={heroBanner} 
                 alt="Sample Society" 
