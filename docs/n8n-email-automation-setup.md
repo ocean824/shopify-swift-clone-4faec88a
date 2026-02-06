@@ -268,22 +268,47 @@ View email automation data in your Lovable Cloud backend:
 
 ---
 
-# SOCIAL MEDIA AUTOMATION (ManyChat + Instagram)
+# SOCIAL MEDIA AUTOMATION
+
+## Overview
+
+All social media platforms (Instagram, Twitter/X, YouTube, TikTok) are controlled through **OnlySocial** via n8n. This provides a single integration point for:
+- Scheduled content posts
+- New product announcements
+- Engagement automation
+- Social listening/monitoring
+
+---
 
 ## Architecture
 
 ```
-New Shopify Product → new-product-announcement (Edge Function)
-                              ↓
-              Generates caption + formats product data
-                              ↓
-                        n8n Workflow
-                              ↓
-                    ┌─────────┴─────────┐
-                    ↓                   ↓
-         manychat-trigger          (Optional: Direct IG post)
-                    ↓
-         ManyChat API → Instagram DMs
+                              ┌─────────────────────────────┐
+                              │        OnlySocial           │
+                              │  (All accounts connected)   │
+                              │  Instagram | Twitter/X      │
+                              │  YouTube | TikTok           │
+                              └──────────────┬──────────────┘
+                                             │
+                                             ▼
+┌──────────────────┐    ┌───────────────────────────────────┐
+│  Shopify Product │───▶│  new-product-announcement         │
+│  (Webhook)       │    │  (Generates captions)             │
+└──────────────────┘    └─────────────┬─────────────────────┘
+                                      │
+                                      ▼
+                        ┌─────────────────────────────────────┐
+                        │          n8n Workflows              │
+                        │  • Product announcements            │
+                        │  • Scheduled content queue          │
+                        │  • Engagement automation            │
+                        └─────────────┬───────────────────────┘
+                                      │
+                                      ▼
+                        ┌─────────────────────────────────────┐
+                        │   onlysocial-trigger (Edge Func)    │
+                        │   Controls all platforms at once    │
+                        └─────────────────────────────────────┘
 ```
 
 ---
@@ -293,27 +318,87 @@ New Shopify Product → new-product-announcement (Edge Function)
 | Function | Purpose |
 |----------|---------|
 | `new-product-announcement` | Receives new product webhooks, generates IG captions in your brand voice |
-| `manychat-trigger` | Triggers ManyChat flows, sends content, manages subscriber tags |
+| `onlysocial-trigger` | Unified API to control all social platforms via OnlySocial |
+| `manychat-trigger` | Triggers ManyChat flows for Instagram DM automation |
 
 ---
 
-## n8n Workflow: New Product → Instagram Announcement
+## OnlySocial API Reference
+
+### List Connected Accounts
+```json
+{
+  "action": "list_accounts"
+}
+```
+Returns all connected social accounts (Instagram, Twitter, YouTube, TikTok).
+
+### Create a Post (Draft)
+```json
+{
+  "action": "create_post",
+  "post": {
+    "body": "🔥 NEW DROP: Stained Glass Vol. 2\n\nThese sounds hit DIFFERENT...\n\n💰 $29 | Link in bio",
+    "accounts": ["account-uuid-1", "account-uuid-2"],
+    "media_uuids": ["media-uuid-1"]
+  }
+}
+```
+
+### Schedule a Post
+```json
+{
+  "action": "schedule_post",
+  "post_uuid": "post-uuid-from-create",
+  "post": {
+    "date": "2025-02-07",
+    "time": "14:00"
+  }
+}
+```
+
+### Add Post to Queue
+```json
+{
+  "action": "add_to_queue",
+  "post_uuid": "post-uuid"
+}
+```
+Uses your OnlySocial queue settings for automatic scheduling.
+
+### List All Posts
+```json
+{
+  "action": "list_posts",
+  "page": 1,
+  "limit": 20
+}
+```
+
+### List Media Files
+```json
+{
+  "action": "list_media",
+  "page": 1,
+  "limit": 20
+}
+```
+
+---
+
+## n8n Workflows for Social Media
 
 ### Workflow 4: Product Announcement Pipeline (REQUIRED)
 
-This workflow triggers when you add a new product and:
-1. Generates Instagram caption in your brand voice
-2. Sends product to ManyChat for DM broadcasts
-3. (Optional) Schedules Instagram post
+Automatically posts to all platforms when you add a new Shopify product.
 
 **Steps:**
 
 1. Add **Webhook** node:
    - HTTP Method: POST
    - Path: `/new-product`
-   - Copy this webhook URL
 
-2. Add **HTTP Request** node (Get Caption):
+2. Add **HTTP Request** node (Generate Caption):
    - Method: `POST`
    - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/new-product-announcement`
    - Body:
@@ -329,25 +414,87 @@ This workflow triggers when you add a new product and:
    }
    ```
 
-3. Add **HTTP Request** node (Trigger ManyChat):
+3. Add **HTTP Request** node (Get Accounts):
    - Method: `POST`
-   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/manychat-trigger`
+   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/onlysocial-trigger`
+   - Body: `{"action": "list_accounts"}`
+
+4. Add **HTTP Request** node (Create Post):
+   - Method: `POST`
+   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/onlysocial-trigger`
    - Body:
    ```json
    {
-     "action": "send_flow",
-     "flow_ns": "YOUR_MANYCHAT_FLOW_NAMESPACE",
-     "subscriber_id": "{{ $json.subscriber_id }}"
+     "action": "create_post",
+     "post": {
+       "body": "{{ $('Generate Caption').item.json.generated_caption }}",
+       "accounts": ["{{ $json.data[0].uuid }}", "{{ $json.data[1].uuid }}"]
+     }
    }
    ```
 
-4. Save and activate
+5. Add **HTTP Request** node (Add to Queue):
+   - Method: `POST`
+   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/onlysocial-trigger`
+   - Body:
+   ```json
+   {
+     "action": "add_to_queue",
+     "post_uuid": "{{ $json.data.uuid }}"
+   }
+   ```
+
+6. Save and activate
 
 ---
 
-## ManyChat Trigger API Reference
+### Workflow 5: Scheduled Content Queue (OPTIONAL)
 
-### Send a Flow
+Weekly workflow to queue content from a spreadsheet or database.
+
+**Steps:**
+
+1. Add **Schedule Trigger** node:
+   - Run every Sunday at 6 PM
+
+2. Add **Google Sheets** node (or your content source):
+   - Get this week's scheduled posts
+
+3. Add **Loop** node:
+   - For each content row
+
+4. Add **HTTP Request** node (Create & Queue):
+   - Create post and add to queue for each item
+
+---
+
+### Workflow 6: Engagement Automation (OPTIONAL)
+
+Monitor mentions and auto-respond.
+
+**Steps:**
+
+1. Add **Schedule Trigger** node:
+   - Run every hour
+
+2. Add **HTTP Request** node (Check mentions via OnlySocial):
+   - List recent posts/comments
+
+3. Add **Filter** node:
+   - Filter for posts needing response
+
+4. Add **Slack/Discord** node (Optional):
+   - Notify team of engagement opportunities
+
+---
+
+## ManyChat Integration (Instagram DMs)
+
+ManyChat is used specifically for Instagram DM automation (separate from OnlySocial).
+
+### ManyChat Trigger API
+
+**Send a Flow:**
 ```json
 {
   "action": "send_flow",
@@ -356,7 +503,7 @@ This workflow triggers when you add a new product and:
 }
 ```
 
-### Send Product Content (DM)
+**Send Product Content (DM):**
 ```json
 {
   "action": "send_content",
@@ -365,28 +512,17 @@ This workflow triggers when you add a new product and:
     "title": "Stained Glass Vol. 2",
     "price": "$29",
     "image_url": "https://...",
-    "handle": "stained-glass-vol-2",
-    "description": "Premium melody loops..."
+    "handle": "stained-glass-vol-2"
   }
 }
 ```
 
-### Add Tag to Subscriber
+**Add Tag:**
 ```json
 {
   "action": "add_tag",
   "subscriber_id": "12345",
   "tag_name": "new_product_interest"
-}
-```
-
-### Set Custom Field
-```json
-{
-  "action": "set_custom_field",
-  "subscriber_id": "12345",
-  "field_name": "last_product_viewed",
-  "field_value": "stained-glass-vol-2"
 }
 ```
 
@@ -436,7 +572,7 @@ Hard-hitting drums that cut through any mix...
 
 ---
 
-## Shopify Webhook Setup for Product Announcements
+## Shopify Webhook Setup
 
 Add these webhooks in Shopify Admin → Settings → Notifications → Webhooks:
 
@@ -455,13 +591,21 @@ Add these webhooks in Shopify Admin → Settings → Notifications → Webhooks:
 
 ### Social Media Automation
 - [ ] Workflow 4: Product Announcement Pipeline
+- [ ] Workflow 5: Scheduled Content Queue (optional)
+- [ ] Workflow 6: Engagement Automation (optional)
 - [ ] Configure Shopify webhook for product creation
-- [ ] Set up ManyChat flow namespace in workflow
 - [ ] Test with a sample product
 
 ---
 
 ## Testing
+
+### Test OnlySocial connection:
+```bash
+curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/onlysocial-trigger \
+  -H "Content-Type: application/json" \
+  -d '{"action": "list_accounts"}'
+```
 
 ### Test caption generation:
 ```bash
@@ -478,14 +622,16 @@ curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/new-product-a
   }'
 ```
 
-### Test ManyChat trigger:
+### Test create post:
 ```bash
-curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/manychat-trigger \
+curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/onlysocial-trigger \
   -H "Content-Type: application/json" \
   -d '{
-    "action": "add_tag",
-    "subscriber_id": "YOUR_SUBSCRIBER_ID",
-    "tag_name": "test_tag"
+    "action": "create_post",
+    "post": {
+      "body": "Test post from API",
+      "accounts": ["YOUR_ACCOUNT_UUID"]
+    }
   }'
 ```
 
