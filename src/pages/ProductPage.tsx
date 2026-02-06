@@ -200,9 +200,6 @@ function BundleItem({
             onClick={() => handleFormatClick('wav')}
           >
             WAV
-            {wavSavings > 0 && selectedFormat === 'wav' && (
-              <span className="ml-1 text-green-400">(-${wavSavings.toFixed(0)})</span>
-            )}
           </Badge>
           {hasStems && (
             <Badge 
@@ -214,9 +211,6 @@ function BundleItem({
               onClick={() => handleFormatClick('stems')}
             >
               WAV + Stems
-              {stemsSavings > 0 && selectedFormat === 'stems' && (
-                <span className="ml-1 text-green-400">(-${stemsSavings.toFixed(0)})</span>
-              )}
             </Badge>
           )}
         </div>
@@ -226,9 +220,6 @@ function BundleItem({
         <span className="font-semibold text-sm whitespace-nowrap">
           ${currentPrice.toFixed(2)}
         </span>
-        {currentSavings > 0 && (
-          <p className="text-xs text-green-500">Save ${currentSavings.toFixed(0)}</p>
-        )}
       </div>
     </div>
   );
