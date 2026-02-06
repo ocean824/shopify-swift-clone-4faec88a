@@ -2,33 +2,30 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import heroBanner from '@/assets/hero-banner.png';
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-background py-16 md:py-24">
-      <div className="container mx-auto px-4 text-center">
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl font-bold uppercase tracking-tight md:text-5xl lg:text-6xl"
-        >
-          SAMPLE SOCIETY
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-          className="mx-auto mt-4 max-w-2xl text-muted-foreground"
-        >
-          Premium sample packs, MIDI kits, and production resources for the modern music producer. 
-          Master use licensed.
-        </motion.p>
+    <section className="relative overflow-hidden bg-background">
+      {/* Hero Banner Image */}
+      <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+        <img 
+          src={heroBanner} 
+          alt="Sample Society"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: '70% center' }}
+        />
+        {/* Gradient overlay for text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+      </div>
+      
+      {/* Content below banner */}
+      <div className="container mx-auto px-4 py-12 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row"
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Button asChild size="lg" className="gap-2">
             <Link to="/bundle">
