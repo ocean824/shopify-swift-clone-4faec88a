@@ -47,15 +47,12 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex lg:items-center lg:gap-6">
-          {navigation.map((item) => (
+          {navigation.filter(item => !item.highlight).map((item) => (
             <Link
               key={item.name}
               to={item.href}
               className={cn(
-                "text-xs font-semibold uppercase tracking-wider transition-colors",
-                item.highlight 
-                  ? "text-primary hover:text-primary/80" 
-                  : "text-muted-foreground hover:text-foreground",
+                "text-xs font-semibold uppercase tracking-wider transition-colors text-muted-foreground hover:text-foreground",
                 location.pathname === item.href && "text-foreground"
               )}
             >
