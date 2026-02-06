@@ -8,15 +8,15 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden bg-background">
       {/* Hero Banner Image */}
-      <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px]">
+      <div className="relative w-full h-[350px] md:h-[450px] lg:h-[550px]">
         <img 
           src={heroBanner} 
           alt="Sample Society"
           className="w-full h-full object-cover"
-          style={{ objectPosition: '50% 100%' }}
+          style={{ objectPosition: '50% 95%' }}
         />
-        {/* Gradient overlay for text visibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
       </div>
       
       {/* Content below banner */}
