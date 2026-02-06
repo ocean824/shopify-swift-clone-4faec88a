@@ -15,6 +15,19 @@ import {
 } from '@/lib/shopify';
 import { calculateBundleDiscount } from '@/data/sampleKits';
 
+// Bundle discount codes mapped to item counts
+const BUNDLE_DISCOUNT_CODES: Record<number, string> = {
+  2: 'BUNDLE5',   // 5% off for 2 items
+  3: 'BUNDLE10',  // 10% off for 3 items
+  4: 'BUNDLE15',  // 15% off for 4 items
+  5: 'BUNDLE50',  // 50% off for 5+ items
+};
+
+function getBundleDiscountCode(itemCount: number): string | null {
+  if (itemCount >= 5) return 'BUNDLE50';
+  if (itemCount >= 2) return BUNDLE_DISCOUNT_CODES[itemCount] || null;
+  return null;
+}
 export interface CartItem {
   lineId: string | null;
   product: ShopifyProduct;
@@ -157,6 +170,38 @@ async function removeLineFromShopifyCart(
   return { success: true };
 }
 
+// Sync bundle discount code with Shopify based on current item count
+async function syncBundleDiscount(
+  cartId: string,
+  itemCount: number,
+  appliedDiscounts: AppliedDiscount[]
+): Promise<{ checkoutUrl?: string }> {
+  const requiredBundleCode = getBundleDiscountCode(itemCount);
+  
+  // Get all non-bundle discount codes (user-applied codes)
+  const userCodes = appliedDiscounts
+    .filter(d => !d.code.startsWith('BUNDLE'))
+    .map(d => d.code);
+  
+  // Build the final list of codes to apply
+  const allCodes = requiredBundleCode 
+    ? [...userCodes, requiredBundleCode]
+    : userCodes;
+  
+  try {
+    const data = await storefrontApiRequest(CART_DISCOUNT_CODES_UPDATE_MUTATION, {
+      cartId,
+      discountCodes: allCodes,
+    });
+    
+    const cart = data?.data?.cartDiscountCodesUpdate?.cart;
+    return { checkoutUrl: cart?.checkoutUrl ? formatCheckoutUrl(cart.checkoutUrl) : undefined };
+  } catch (error) {
+    console.error('Failed to sync bundle discount:', error);
+    return {};
+  }
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -170,7 +215,7 @@ export const useCartStore = create<CartStore>()(
       discountError: null,
 
       addItem: async (item) => {
-        const { items, cartId, clearCart } = get();
+        const { items, cartId, clearCart, appliedDiscounts } = get();
         const existingItem = items.find((i) => i.variantId === item.variantId);
 
         set({ isLoading: true });
@@ -178,10 +223,16 @@ export const useCartStore = create<CartStore>()(
           if (!cartId) {
             const result = await createShopifyCart({ ...item, lineId: null });
             if (result) {
+              const newItems = [{ ...item, lineId: result.lineId }];
+              const newItemCount = newItems.reduce((sum, i) => sum + i.quantity, 0);
+              
+              // Sync bundle discount for new cart
+              const bundleSync = await syncBundleDiscount(result.cartId, newItemCount, []);
+              
               set({
                 cartId: result.cartId,
-                checkoutUrl: result.checkoutUrl,
-                items: [{ ...item, lineId: result.lineId }],
+                checkoutUrl: bundleSync.checkoutUrl || result.checkoutUrl,
+                items: newItems,
                 isOpen: true,
               });
             }
@@ -194,11 +245,18 @@ export const useCartStore = create<CartStore>()(
             const result = await updateShopifyCartLine(cartId, existingItem.lineId, newQuantity);
             if (result.success) {
               const currentItems = get().items;
+              const updatedItems = currentItems.map((i) =>
+                i.variantId === item.variantId ? { ...i, quantity: newQuantity } : i
+              );
+              const newItemCount = updatedItems.reduce((sum, i) => sum + i.quantity, 0);
+              
+              // Sync bundle discount after quantity update
+              const bundleSync = await syncBundleDiscount(cartId, newItemCount, appliedDiscounts);
+              
               set({
-                items: currentItems.map((i) =>
-                  i.variantId === item.variantId ? { ...i, quantity: newQuantity } : i
-                ),
+                items: updatedItems,
                 isOpen: true,
+                ...(bundleSync.checkoutUrl && { checkoutUrl: bundleSync.checkoutUrl }),
               });
             } else if (result.cartNotFound) {
               clearCart();
@@ -207,9 +265,16 @@ export const useCartStore = create<CartStore>()(
             const result = await addLineToShopifyCart(cartId, { ...item, lineId: null });
             if (result.success) {
               const currentItems = get().items;
+              const updatedItems = [...currentItems, { ...item, lineId: result.lineId ?? null }];
+              const newItemCount = updatedItems.reduce((sum, i) => sum + i.quantity, 0);
+              
+              // Sync bundle discount after adding new item
+              const bundleSync = await syncBundleDiscount(cartId, newItemCount, appliedDiscounts);
+              
               set({
-                items: [...currentItems, { ...item, lineId: result.lineId ?? null }],
+                items: updatedItems,
                 isOpen: true,
+                ...(bundleSync.checkoutUrl && { checkoutUrl: bundleSync.checkoutUrl }),
               });
             } else if (result.cartNotFound) {
               clearCart();
@@ -228,7 +293,7 @@ export const useCartStore = create<CartStore>()(
           return;
         }
 
-        const { items, cartId, clearCart } = get();
+        const { items, cartId, clearCart, appliedDiscounts } = get();
         const item = items.find((i) => i.variantId === variantId);
         if (!item?.lineId || !cartId) return;
 
@@ -237,10 +302,17 @@ export const useCartStore = create<CartStore>()(
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
           if (result.success) {
             const currentItems = get().items;
+            const updatedItems = currentItems.map((i) =>
+              i.variantId === variantId ? { ...i, quantity } : i
+            );
+            const newItemCount = updatedItems.reduce((sum, i) => sum + i.quantity, 0);
+            
+            // Sync bundle discount after quantity change
+            const bundleSync = await syncBundleDiscount(cartId, newItemCount, appliedDiscounts);
+            
             set({
-              items: currentItems.map((i) =>
-                i.variantId === variantId ? { ...i, quantity } : i
-              ),
+              items: updatedItems,
+              ...(bundleSync.checkoutUrl && { checkoutUrl: bundleSync.checkoutUrl }),
             });
           } else if (result.cartNotFound) {
             clearCart();
@@ -253,7 +325,7 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeItem: async (variantId) => {
-        const { items, cartId, clearCart } = get();
+        const { items, cartId, clearCart, appliedDiscounts } = get();
         const item = items.find((i) => i.variantId === variantId);
         if (!item?.lineId || !cartId) return;
 
@@ -263,7 +335,20 @@ export const useCartStore = create<CartStore>()(
           if (result.success) {
             const currentItems = get().items;
             const newItems = currentItems.filter((i) => i.variantId !== variantId);
-            newItems.length === 0 ? clearCart() : set({ items: newItems });
+            
+            if (newItems.length === 0) {
+              clearCart();
+            } else {
+              const newItemCount = newItems.reduce((sum, i) => sum + i.quantity, 0);
+              
+              // Sync bundle discount after item removal
+              const bundleSync = await syncBundleDiscount(cartId, newItemCount, appliedDiscounts);
+              
+              set({
+                items: newItems,
+                ...(bundleSync.checkoutUrl && { checkoutUrl: bundleSync.checkoutUrl }),
+              });
+            }
           } else if (result.cartNotFound) {
             clearCart();
           }
