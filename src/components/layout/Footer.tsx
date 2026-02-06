@@ -16,7 +16,7 @@ const socialLinks = [
   { name: 'Twitter', href: 'https://x.com/samplexsociety?s=21&t=B7ZyF-Vx4kcIR1w93CBVTg', icon: Twitter },
   { name: 'YouTube', href: 'https://youtube.com/@samplexsociety8796?si=tTnuzj1Plakvdxbo', icon: Youtube },
   { name: 'TikTok', href: 'https://www.tiktok.com/@samplexsociety?_r=1&_t=ZP-93gccym8gVq', icon: TikTokIcon },
-  { name: 'Email', href: 'mailto:contact@samplesociety.com', icon: Mail },
+  { name: 'Email', href: 'mailto:samplesocietyllc@gmail.com', icon: Mail },
 ];
 
 export function Footer() {
