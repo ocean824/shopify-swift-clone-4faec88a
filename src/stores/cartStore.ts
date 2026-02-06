@@ -20,11 +20,11 @@ const BUNDLE_DISCOUNT_CODES: Record<number, string> = {
   2: 'BUNDLE5',   // 5% off for 2 items
   3: 'BUNDLE10',  // 10% off for 3 items
   4: 'BUNDLE15',  // 15% off for 4 items
-  5: 'BUNDLE50',  // 50% off for 5+ items
+  5: 'BUNDLE20',  // 20% off for 5+ items
 };
 
 function getBundleDiscountCode(itemCount: number): string | null {
-  if (itemCount >= 5) return 'BUNDLE50';
+  if (itemCount >= 5) return 'BUNDLE20';
   if (itemCount >= 2) return BUNDLE_DISCOUNT_CODES[itemCount] || null;
   return null;
 }
