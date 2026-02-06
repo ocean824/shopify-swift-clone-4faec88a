@@ -18,13 +18,24 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate inputs
+    if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Open mailto link with form data
+    const mailtoLink = `mailto:samplesocietyllc@gmail.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
+      `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+    )}`;
     
-    toast.success('Message sent!', {
-      description: "We'll get back to you as soon as possible.",
+    window.open(mailtoLink, '_blank');
+    
+    toast.success('Opening email client...', {
+      description: "Complete the email in your mail app.",
     });
     
     setFormData({ name: '', email: '', subject: '', message: '' });
@@ -123,10 +134,10 @@ export default function ContactPage() {
             For business inquiries, email us directly at:
           </p>
           <a 
-            href="mailto:contact@samplesociety.com" 
+            href="mailto:samplesocietyllc@gmail.com" 
             className="mt-2 inline-block font-medium text-primary hover:underline"
           >
-            contact@samplesociety.com
+            samplesocietyllc@gmail.com
           </a>
         </div>
       </section>
