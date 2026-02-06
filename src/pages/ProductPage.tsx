@@ -578,9 +578,6 @@ export default function ProductPage() {
                     <>
                       <span className="text-xs text-muted-foreground line-through">${bundleSubtotal.toFixed(2)}</span>
                       <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
-                      <span className="text-xs text-green-500 font-medium">
-                        {bundleKitDiscountPercent}% off (-${(bundleSubtotal * bundleKitDiscountPercent / 100).toFixed(2)})
-                      </span>
                     </>
                   ) : (
                     <>
