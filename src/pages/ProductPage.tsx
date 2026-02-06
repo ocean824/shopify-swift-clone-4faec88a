@@ -568,7 +568,10 @@ export default function ProductPage() {
                   {bundleKitDiscountPercent > 0 ? (
                     <>
                       <span className="text-xs text-muted-foreground line-through">${bundleSubtotal.toFixed(2)}</span>
-                      <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                      <div className="flex items-center gap-2 justify-end">
+                        <p className="text-xl font-bold text-primary">${bundleTotal.toFixed(2)}</p>
+                        <span className="text-sm font-semibold text-primary">({bundleKitDiscountPercent}% off)</span>
+                      </div>
                     </>
                   ) : (
                     <>
