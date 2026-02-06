@@ -1,23 +1,25 @@
 import { Layout } from '@/components/layout/Layout';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { motion } from 'framer-motion';
-import { Users, Star, Zap, Trophy } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
-const benefits = [
+const artists = [
   {
-    icon: Star,
-    title: 'Exclusive Content',
-    description: 'Get early access to new sample packs and exclusive member-only releases.',
+    id: 'ocean',
+    name: 'ØCEAN',
+    initial: 'Ø',
   },
   {
-    icon: Zap,
-    title: 'Producer Community',
-    description: 'Connect with like-minded producers and share your creations.',
+    id: 'niko-the-great',
+    name: 'NIKO THE GREAT',
+    initial: 'N',
   },
   {
-    icon: Trophy,
-    title: 'Discounts & Perks',
-    description: 'Members receive special discounts on all products and bundles.',
+    id: 'vzn',
+    name: 'VZN',
+    initial: 'V',
   },
 ];
 
@@ -34,22 +36,33 @@ const SocietyPage = () => {
           <Users className="mx-auto h-16 w-16 text-primary mb-6" />
           <h1 className="text-4xl font-bold uppercase tracking-tight mb-4">The Society</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Join an exclusive community of producers, beatmakers, and artists.
+            Meet the producers behind Sample Society.
           </p>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
-          {benefits.map((benefit, index) => (
+          {artists.map((artist, index) => (
             <motion.div
-              key={benefit.title}
+              key={artist.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-card/50 backdrop-blur-sm p-8 rounded-xl border border-border text-center"
+              className="bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden group"
             >
-              <benefit.icon className="mx-auto h-10 w-10 text-primary mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{benefit.title}</h3>
-              <p className="text-sm text-muted-foreground">{benefit.description}</p>
+              {/* Logo Square */}
+              <div className="aspect-square bg-background/50 flex items-center justify-center border-b border-border">
+                <span className="text-6xl font-bold text-primary group-hover:scale-110 transition-transform">
+                  {artist.initial}
+                </span>
+              </div>
+              
+              {/* Artist Info */}
+              <div className="p-6 text-center">
+                <h3 className="text-lg font-bold uppercase tracking-wider mb-4">{artist.name}</h3>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={`/artist/${artist.id}`}>View Kits</Link>
+                </Button>
+              </div>
             </motion.div>
           ))}
         </div>
