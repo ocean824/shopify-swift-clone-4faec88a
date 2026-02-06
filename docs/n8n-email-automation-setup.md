@@ -1,13 +1,14 @@
-# Sample Society Email Automation - n8n Setup Guide
+# Sample Society Automation Suite - n8n Setup Guide
 
 ## Overview
 
-This document explains how to set up the automated email sequences in n8n. The infrastructure is already built in your Lovable Cloud backend.
+This document explains how to set up automated email sequences AND social media posting in n8n. The infrastructure is already built in your Lovable Cloud backend.
 
 ---
 
 ## Architecture
 
+### Email Automation
 ```
 Shopify → Webhooks → shopify-webhook (Edge Function)
                           ↓
@@ -264,4 +265,227 @@ View email automation data in your Lovable Cloud backend:
 - `email_sequence_progress` - Active sequences
 - `email_send_log` - Sent email history
 - `shopify_webhook_log` - Incoming Shopify events
+
+---
+
+# SOCIAL MEDIA AUTOMATION (ManyChat + Instagram)
+
+## Architecture
+
+```
+New Shopify Product → new-product-announcement (Edge Function)
+                              ↓
+              Generates caption + formats product data
+                              ↓
+                        n8n Workflow
+                              ↓
+                    ┌─────────┴─────────┐
+                    ↓                   ↓
+         manychat-trigger          (Optional: Direct IG post)
+                    ↓
+         ManyChat API → Instagram DMs
+```
+
+---
+
+## Social Media Edge Functions
+
+| Function | Purpose |
+|----------|---------|
+| `new-product-announcement` | Receives new product webhooks, generates IG captions in your brand voice |
+| `manychat-trigger` | Triggers ManyChat flows, sends content, manages subscriber tags |
+
+---
+
+## n8n Workflow: New Product → Instagram Announcement
+
+### Workflow 4: Product Announcement Pipeline (REQUIRED)
+
+This workflow triggers when you add a new product and:
+1. Generates Instagram caption in your brand voice
+2. Sends product to ManyChat for DM broadcasts
+3. (Optional) Schedules Instagram post
+
+**Steps:**
+
+1. Add **Webhook** node:
+   - HTTP Method: POST
+   - Path: `/new-product`
+   - Copy this webhook URL
+
+2. Add **HTTP Request** node (Get Caption):
+   - Method: `POST`
+   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/new-product-announcement`
+   - Body:
+   ```json
+   {
+     "product": {
+       "title": "{{ $json.body.title }}",
+       "description": "{{ $json.body.description }}",
+       "price": "{{ $json.body.price }}",
+       "image_url": "{{ $json.body.image_url }}",
+       "handle": "{{ $json.body.handle }}"
+     }
+   }
+   ```
+
+3. Add **HTTP Request** node (Trigger ManyChat):
+   - Method: `POST`
+   - URL: `https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/manychat-trigger`
+   - Body:
+   ```json
+   {
+     "action": "send_flow",
+     "flow_ns": "YOUR_MANYCHAT_FLOW_NAMESPACE",
+     "subscriber_id": "{{ $json.subscriber_id }}"
+   }
+   ```
+
+4. Save and activate
+
+---
+
+## ManyChat Trigger API Reference
+
+### Send a Flow
+```json
+{
+  "action": "send_flow",
+  "subscriber_id": "12345",
+  "flow_ns": "your_flow_namespace"
+}
+```
+
+### Send Product Content (DM)
+```json
+{
+  "action": "send_content",
+  "subscriber_id": "12345",
+  "product": {
+    "title": "Stained Glass Vol. 2",
+    "price": "$29",
+    "image_url": "https://...",
+    "handle": "stained-glass-vol-2",
+    "description": "Premium melody loops..."
+  }
+}
+```
+
+### Add Tag to Subscriber
+```json
+{
+  "action": "add_tag",
+  "subscriber_id": "12345",
+  "tag_name": "new_product_interest"
+}
+```
+
+### Set Custom Field
+```json
+{
+  "action": "set_custom_field",
+  "subscriber_id": "12345",
+  "field_name": "last_product_viewed",
+  "field_value": "stained-glass-vol-2"
+}
+```
+
+---
+
+## Caption Templates (Auto-Generated)
+
+The `new-product-announcement` function generates captions in your brand voice:
+
+### Sample Kit Style
+```
+🔥 NEW DROP: Stained Glass Vol. 2
+
+Premium melody loops with vintage textures...
+
+These sounds hit DIFFERENT. Grab yours before they're gone.
+
+💰 $29
+🔗 Link in bio
+
+#producer #beatmaker #samplepack #musicproducer #beats
+```
+
+### MIDI Kit Style
+```
+🎹 MIDI ALERT: Haze MIDI Kit
+
+Plug these progressions straight into your DAW...
+
+💰 $19
+🔗 Link in bio
+
+#midi #chords #producer #musictheory #beatmaker
+```
+
+### Drum Kit Style
+```
+🥁 DRUMS JUST DROPPED: Moonlight Drumkit
+
+Hard-hitting drums that cut through any mix...
+
+💰 $24
+🔗 Link in bio
+
+#drums #drumkit #producer #808s #hihats
+```
+
+---
+
+## Shopify Webhook Setup for Product Announcements
+
+Add these webhooks in Shopify Admin → Settings → Notifications → Webhooks:
+
+| Event | URL |
+|-------|-----|
+| Product creation | `YOUR_N8N_WEBHOOK_URL/new-product` |
+
+---
+
+## Complete n8n Setup Checklist
+
+### Email Automation
+- [ ] Workflow 1: Scheduled Email Processor (every 15 mins)
+- [ ] Workflow 2: Shopify Webhook Receiver
+- [ ] Configure Shopify webhooks for customers/orders
+
+### Social Media Automation
+- [ ] Workflow 4: Product Announcement Pipeline
+- [ ] Configure Shopify webhook for product creation
+- [ ] Set up ManyChat flow namespace in workflow
+- [ ] Test with a sample product
+
+---
+
+## Testing
+
+### Test caption generation:
+```bash
+curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/new-product-announcement \
+  -H "Content-Type: application/json" \
+  -d '{
+    "product": {
+      "title": "Test Sample Kit",
+      "description": "Premium melody loops for producers",
+      "price": "$29",
+      "image_url": "https://example.com/image.jpg",
+      "handle": "test-sample-kit"
+    }
+  }'
+```
+
+### Test ManyChat trigger:
+```bash
+curl -X POST https://ghapdeffxpbzznxgfkoi.supabase.co/functions/v1/manychat-trigger \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "add_tag",
+    "subscriber_id": "YOUR_SUBSCRIBER_ID",
+    "tag_name": "test_tag"
+  }'
+```
 
