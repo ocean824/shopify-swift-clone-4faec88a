@@ -13,7 +13,7 @@ export function Hero() {
           src={heroBanner} 
           alt="Sample Society"
           className="w-full h-full object-cover"
-          style={{ objectPosition: '50% center' }}
+          style={{ objectPosition: '50% 30%' }}
         />
         {/* Gradient overlay for text visibility */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
