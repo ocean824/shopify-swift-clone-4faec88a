@@ -9,24 +9,30 @@ import { sampleKits, SampleKit } from '@/data/sampleKits';
 import { useCartStore } from '@/stores/cartStore';
 import { useAudio } from '@/components/audio/AudioPlayer';
 
+import vznImage from '@/assets/artists/vzn.jpeg';
+import nikoImage from '@/assets/artists/niko.jpeg';
+import oceanImage from '@/assets/artists/ocean.jpeg';
+
 // Artist configuration with their specific kit IDs
 const ARTISTS: Record<string, { 
   name: string; 
   displayName: string; 
   bio: string;
+  image: string;
   kitIds: string[];
 }> = {
   'ocean': {
     name: 'ØCEAN',
     displayName: 'ØCEAN',
     bio: 'Producer and sound designer crafting unique sonic landscapes.',
+    image: oceanImage,
     kitIds: ['unrequited-love-vol-2', 'moonlight-drumkit'],
   },
   'niko-the-great': {
     name: 'NIKO THE GREAT',
     displayName: 'NIKO THE GREAT',
     bio: 'Beatmaker known for hard-hitting drums and melodic compositions.',
-    // All kits except VZN's kits and moonlight-drumkit (which is Ocean's)
+    image: nikoImage,
     kitIds: [
       'mana-vol-1',
       'haze-midi-phrases',
@@ -45,6 +51,7 @@ const ARTISTS: Record<string, {
     name: 'VZN',
     displayName: 'VZN',
     bio: 'Visionary producer pushing the boundaries of modern production.',
+    image: vznImage,
     kitIds: ['vzn-compositions', 'flood-szn-vol-1', 'flood-szn-vol-2'],
   },
 };
@@ -225,9 +232,13 @@ const ArtistPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          {/* Artist Logo Placeholder */}
-          <div className="mx-auto w-32 h-32 bg-card border border-border rounded-xl flex items-center justify-center mb-6">
-            <span className="text-3xl font-bold text-primary">{artist.displayName.charAt(0)}</span>
+          {/* Artist Photo */}
+          <div className="mx-auto w-32 h-32 bg-card border border-border rounded-xl overflow-hidden mb-6">
+            <img 
+              src={artist.image} 
+              alt={artist.displayName}
+              className="w-full h-full object-cover"
+            />
           </div>
           <h1 className="text-4xl font-bold uppercase tracking-tight mb-4">{artist.displayName}</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">{artist.bio}</p>

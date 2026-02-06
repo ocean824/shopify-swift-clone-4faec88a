@@ -5,21 +5,25 @@ import { Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
+import vznImage from '@/assets/artists/vzn.jpeg';
+import nikoImage from '@/assets/artists/niko.jpeg';
+import oceanImage from '@/assets/artists/ocean.jpeg';
+
 const artists = [
   {
     id: 'ocean',
     name: 'ØCEAN',
-    initial: 'Ø',
+    image: oceanImage,
   },
   {
     id: 'niko-the-great',
     name: 'NIKO THE GREAT',
-    initial: 'N',
+    image: nikoImage,
   },
   {
     id: 'vzn',
     name: 'VZN',
-    initial: 'V',
+    image: vznImage,
   },
 ];
 
@@ -49,11 +53,13 @@ const SocietyPage = () => {
               transition={{ delay: index * 0.1 }}
               className="bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden group"
             >
-              {/* Logo Square */}
-              <div className="aspect-square bg-background/50 flex items-center justify-center border-b border-border">
-                <span className="text-6xl font-bold text-primary group-hover:scale-110 transition-transform">
-                  {artist.initial}
-                </span>
+              {/* Artist Photo */}
+              <div className="aspect-square bg-background/50 overflow-hidden border-b border-border">
+                <img 
+                  src={artist.image} 
+                  alt={artist.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
               </div>
               
               {/* Artist Info */}
