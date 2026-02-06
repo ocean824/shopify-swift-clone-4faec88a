@@ -309,7 +309,7 @@ const Index = () => {
                 src={heroBanner} 
                 alt="Sample Society" 
                 className="w-full h-full object-cover dark:invert-0 invert"
-                style={{ objectPosition: 'center bottom' }}
+                style={{ objectPosition: 'center 85%' }}
               />
             </div>
           </motion.div>
