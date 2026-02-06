@@ -375,10 +375,10 @@ export function getRelatedKits(currentKit: SampleKit, limit = 4): SampleKit[] {
 }
 
 // Bundle discount calculator
-// 5% off per additional item, max 50% off at 5+ items
+// 5% off per additional item, max 20% off at 5+ items
 export function calculateBundleDiscount(itemCount: number): number {
   if (itemCount <= 1) return 0;
-  if (itemCount >= 5) return 0.50; // 50% off for 5+ items
+  if (itemCount >= 5) return 0.20; // 20% off for 5+ items
   return (itemCount - 1) * 0.05; // 5% per additional item (2 items = 5%, 3 = 10%, 4 = 15%)
 }
 
