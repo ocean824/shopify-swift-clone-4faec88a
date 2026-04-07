@@ -367,7 +367,10 @@ export const useCartStore = create<CartStore>()(
         discountError: null 
       }),
 
-      getCheckoutUrl: () => get().checkoutUrl,
+      getCheckoutUrl: () => {
+        const checkoutUrl = get().checkoutUrl;
+        return checkoutUrl ? formatCheckoutUrl(checkoutUrl) : null;
+      },
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
@@ -510,7 +513,14 @@ export const useCartStore = create<CartStore>()(
           const data = await storefrontApiRequest(CART_QUERY, { id: cartId });
           if (!data) return;
           const cart = data?.data?.cart;
-          if (!cart || cart.totalQuantity === 0) clearCart();
+          if (!cart || cart.totalQuantity === 0) {
+            clearCart();
+            return;
+          }
+
+          if (cart.checkoutUrl) {
+            set({ checkoutUrl: formatCheckoutUrl(cart.checkoutUrl) });
+          }
         } catch (error) {
           console.error('Failed to sync cart with Shopify:', error);
         } finally {
