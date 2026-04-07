@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, ArrowLeft, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
@@ -12,6 +12,145 @@ import { cn } from '@/lib/utils';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { useAudio } from '@/components/audio/AudioPlayer';
 import { useDiscountStore } from '@/stores/discountStore';
+import { getProductByHandle, ShopifyProductNode } from '@/lib/shopify';
+
+// Shopify Product Detail (for merch / non-local products)
+function ShopifyProductDetail({ product }: { product: ShopifyProductNode }) {
+  const { addItem, isLoading: cartLoading, openCart } = useCartStore();
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
+
+  const variants = product.variants.edges.map(e => e.node);
+  const images = product.images.edges.map(e => e.node);
+  const selectedVariant = variants[selectedVariantIdx];
+  const price = selectedVariant ? parseFloat(selectedVariant.price.amount) : 0;
+  const compareAt = selectedVariant?.compareAtPrice ? parseFloat(selectedVariant.compareAtPrice.amount) : null;
+  const isOnSale = compareAt && compareAt > price;
+
+  const handleAddToCart = async () => {
+    if (!selectedVariant) return;
+    const productData = {
+      node: {
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        handle: product.handle,
+        productType: product.productType,
+        vendor: product.vendor,
+        priceRange: product.priceRange,
+        compareAtPriceRange: product.compareAtPriceRange,
+        images: product.images,
+        variants: product.variants,
+        options: product.options,
+      },
+    };
+    await addItem({
+      product: productData,
+      variantId: selectedVariant.id,
+      variantTitle: selectedVariant.title,
+      price: selectedVariant.price,
+      quantity: 1,
+      selectedOptions: selectedVariant.selectedOptions || [],
+    });
+    openCart();
+  };
+
+  return (
+    <Layout>
+      <BeamsBackground />
+      <div className="relative z-10 container mx-auto px-4 py-8">
+        <Link
+          to="/merch"
+          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Merch
+        </Link>
+
+        <div className="grid gap-8 lg:grid-cols-[400px_1fr] lg:gap-12">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-start justify-center lg:sticky lg:top-24"
+          >
+            <div className="w-full max-w-[400px] aspect-square overflow-hidden rounded-xl border border-border bg-card">
+              {images[0] ? (
+                <img src={images[0].url} alt={images[0].altText || product.title} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-muted">
+                  <span className="text-6xl text-muted-foreground/30">👕</span>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex flex-col"
+          >
+            {product.productType && (
+              <span className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                {product.productType}
+              </span>
+            )}
+
+            <h1 className="text-2xl md:text-3xl font-bold mb-3">{product.title}</h1>
+
+            <div className="flex items-center gap-3 mb-6">
+              {isOnSale && (
+                <Badge className="bg-primary text-primary-foreground text-xs px-2 py-0.5">SALE</Badge>
+              )}
+              <span className="text-2xl font-bold text-primary">${price.toFixed(2)}</span>
+              {isOnSale && compareAt && (
+                <span className="text-lg text-muted-foreground line-through">${compareAt.toFixed(2)}</span>
+              )}
+            </div>
+
+            {/* Variant selector */}
+            {variants.length > 1 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold mb-3">Options</h3>
+                <div className="flex flex-wrap gap-2">
+                  {variants.map((v, i) => (
+                    <Badge
+                      key={v.id}
+                      variant={selectedVariantIdx === i ? 'default' : 'outline'}
+                      className={cn(
+                        "cursor-pointer text-sm px-4 py-1.5",
+                        selectedVariantIdx === i ? 'bg-primary text-primary-foreground' : 'hover:bg-primary/20',
+                        !v.availableForSale && 'opacity-50 cursor-not-allowed'
+                      )}
+                      onClick={() => v.availableForSale && setSelectedVariantIdx(i)}
+                    >
+                      {v.title}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {product.description && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold mb-3">Description</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+              </div>
+            )}
+
+            <Button
+              size="lg"
+              className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-lg py-6"
+              onClick={handleAddToCart}
+              disabled={cartLoading || !selectedVariant?.availableForSale}
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {selectedVariant?.availableForSale ? 'Add to Cart' : 'Sold Out'}
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </Layout>
+  );
+}
 
 // Global Audio Player for Product Page with auto-pause
 function WaveformPlayer({ audioUrl, kitId }: { audioUrl?: string; kitId: string }) {
@@ -240,6 +379,20 @@ export default function ProductPage() {
   // Find kit from local data - redirect bundle to external URL
   const kit = handle ? findKitByHandle(handle) : undefined;
   
+  // Fetch from Shopify API if not found locally (e.g., merch products)
+  const [shopifyProduct, setShopifyProduct] = useState<ShopifyProductNode | null>(null);
+  const [shopifyLoading, setShopifyLoading] = useState(false);
+  
+  useEffect(() => {
+    if (!kit && handle) {
+      setShopifyLoading(true);
+      getProductByHandle(handle)
+        .then(p => setShopifyProduct(p))
+        .catch(() => setShopifyProduct(null))
+        .finally(() => setShopifyLoading(false));
+    }
+  }, [handle, kit]);
+  
   // Redirect All Kits Bundle to external URL
   useEffect(() => {
     if (kit?.id === 'all-kits-bundle-2025') {
@@ -262,6 +415,21 @@ export default function ProductPage() {
   }, [kit?.id]);
 
   if (!kit) {
+    if (shopifyLoading) {
+      return (
+        <Layout>
+          <BeamsBackground />
+          <div className="relative z-10 container mx-auto px-4 py-16 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        </Layout>
+      );
+    }
+    
+    if (shopifyProduct) {
+      return <ShopifyProductDetail product={shopifyProduct} />;
+    }
+    
     return (
       <Layout>
         <BeamsBackground />
