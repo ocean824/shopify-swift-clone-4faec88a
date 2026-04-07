@@ -105,22 +105,12 @@ const SubscribePage = () => {
   };
 
   const handleSubscribe = async () => {
-    if (!user || !session?.access_token) {
-      toast({
-        title: 'Sign in required',
-        description: 'Please sign in or create an account to subscribe.',
-        variant: 'destructive',
-      });
-      navigate('/auth?redirect=/subscribe');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
       const data = await callEdgeFunction<{ url?: string }>('create-subscription-checkout', {
         priceId: currentPlan.priceId,
-        email: user.email,
+        email: user?.email,
       });
 
       if (!data?.url) {
