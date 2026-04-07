@@ -25,25 +25,25 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    const { priceId, email } = await req.json();
+
+    // Try to get email from auth if available, fall back to provided email
+    let finalEmail = email;
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Get user from auth header
     const authHeader = req.headers.get("Authorization");
-    let userEmail: string | undefined;
-
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
       const { data: userData } = await supabaseClient.auth.getUser(token);
-      userEmail = userData.user?.email ?? undefined;
-      logStep("User authenticated", { email: userEmail });
+      if (userData.user?.email) {
+        finalEmail = userData.user.email;
+        logStep("User authenticated", { email: finalEmail });
+      }
     }
-
-    const { priceId, email } = await req.json();
-    const finalEmail = userEmail || email;
 
     if (!priceId || !PRICES[priceId]) {
       throw new Error("Invalid price selected");
