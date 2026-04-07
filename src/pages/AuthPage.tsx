@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,9 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedRedirect = searchParams.get('redirect');
+  const redirectPath = requestedRedirect && requestedRedirect.startsWith('/') ? requestedRedirect : '/members';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,10 +37,10 @@ const AuthPage = () => {
           });
           if (error) throw error;
           toast({
-            title: "Welcome back!",
+            title: 'Welcome back!',
             description: "You've been signed in successfully.",
           });
-          navigate('/members');
+          navigate(redirectPath);
           break;
         }
 
@@ -46,7 +49,7 @@ const AuthPage = () => {
             email,
             password,
             options: {
-              emailRedirectTo: window.location.origin + '/members',
+              emailRedirectTo: window.location.origin + redirectPath,
               data: {
                 display_name: displayName,
               },
@@ -54,8 +57,8 @@ const AuthPage = () => {
           });
           if (error) throw error;
           toast({
-            title: "Account created!",
-            description: "You can now sign in to your account.",
+            title: 'Account created!',
+            description: 'You can now sign in to your account.',
           });
           setMode('login');
           break;
@@ -67,7 +70,7 @@ const AuthPage = () => {
           });
           if (error) throw error;
           toast({
-            title: "Reset link sent!",
+            title: 'Reset link sent!',
             description: `Check ${email} for a password reset link.`,
           });
           setMode('login');
@@ -78,12 +81,12 @@ const AuthPage = () => {
           const { error } = await supabase.auth.signInWithOtp({
             email,
             options: {
-              emailRedirectTo: window.location.origin + '/members',
+              emailRedirectTo: window.location.origin + redirectPath,
             },
           });
           if (error) throw error;
           toast({
-            title: "Magic link sent!",
+            title: 'Magic link sent!',
             description: `Check ${email} for a sign-in link.`,
           });
           break;
@@ -92,9 +95,9 @@ const AuthPage = () => {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast({
-        title: "Error",
+        title: 'Error',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -103,28 +106,40 @@ const AuthPage = () => {
 
   const getTitle = () => {
     switch (mode) {
-      case 'login': return 'Sign In';
-      case 'signup': return 'Create Account';
-      case 'forgot': return 'Reset Password';
-      case 'magic': return 'Magic Link Sign In';
+      case 'login':
+        return 'Sign In';
+      case 'signup':
+        return 'Create Account';
+      case 'forgot':
+        return 'Reset Password';
+      case 'magic':
+        return 'Magic Link Sign In';
     }
   };
 
   const getButtonText = () => {
     switch (mode) {
-      case 'login': return 'Sign In';
-      case 'signup': return 'Create Account';
-      case 'forgot': return 'Send Reset Link';
-      case 'magic': return 'Send Magic Link';
+      case 'login':
+        return 'Sign In';
+      case 'signup':
+        return 'Create Account';
+      case 'forgot':
+        return 'Send Reset Link';
+      case 'magic':
+        return 'Send Magic Link';
     }
   };
 
   const getLoadingText = () => {
     switch (mode) {
-      case 'login': return 'Signing in...';
-      case 'signup': return 'Creating account...';
-      case 'forgot': return 'Sending reset link...';
-      case 'magic': return 'Sending magic link...';
+      case 'login':
+        return 'Signing in...';
+      case 'signup':
+        return 'Creating account...';
+      case 'forgot':
+        return 'Sending reset link...';
+      case 'magic':
+        return 'Sending magic link...';
     }
   };
 
@@ -142,7 +157,7 @@ const AuthPage = () => {
             <p className="text-sm text-muted-foreground text-center mb-6">
               {mode === 'login' && 'Use the email from your purchase'}
               {mode === 'signup' && 'Create an account with your purchase email'}
-              {mode === 'forgot' && 'We\'ll send you a reset link'}
+              {mode === 'forgot' && "We'll send you a reset link"}
               {mode === 'magic' && 'Sign in without a password'}
             </p>
 
@@ -211,21 +226,15 @@ const AuthPage = () => {
               </Button>
             </form>
 
-            {/* Alternative sign-in options */}
             {mode === 'login' && (
               <div className="mt-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => setMode('magic')}
-                >
+                <Button variant="outline" className="w-full" onClick={() => setMode('magic')}>
                   <Sparkles className="h-4 w-4 mr-2" />
                   Sign in with Magic Link
                 </Button>
               </div>
             )}
 
-            {/* Navigation links */}
             <div className="mt-6 space-y-2 text-center">
               {mode === 'login' && (
                 <>
