@@ -30,7 +30,6 @@ serve(async (req) => {
     const body = await req.text();
     let event: Stripe.Event;
 
-    // Verify webhook signature if secret is set
     if (webhookSecret) {
       const signature = req.headers.get("stripe-signature");
       if (!signature) throw new Error("No stripe-signature header");
@@ -47,6 +46,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Handle checkout.session.completed — create user if needed + record subscription
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const customerEmail = session.customer_details?.email || session.customer_email;
@@ -60,30 +60,26 @@ serve(async (req) => {
 
       logStep("Processing checkout completion", { email: customerEmail, mode: session.mode });
 
-      // Check if user already exists
+      // Create user if they don't exist
       const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
       const existingUser = existingUsers?.users?.find(
         (u) => u.email?.toLowerCase() === customerEmail.toLowerCase()
       );
 
       if (existingUser) {
-        logStep("User already exists", { userId: existingUser.id, email: customerEmail });
+        logStep("User already exists", { userId: existingUser.id });
       } else {
-        // Create new user with a random password - they'll set their own via email
         const tempPassword = crypto.randomUUID() + crypto.randomUUID();
-        
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
           email: customerEmail,
           password: tempPassword,
-          email_confirm: true, // Auto-confirm since they just paid
+          email_confirm: true,
         });
 
         if (createError) {
           logStep("Error creating user", { error: createError.message });
         } else {
-          logStep("User created successfully", { userId: newUser.user?.id, email: customerEmail });
-
-          // Send password reset email so they can set their own password
+          logStep("User created", { userId: newUser.user?.id });
           const { error: resetError } = await supabaseAdmin.auth.admin.generateLink({
             type: "recovery",
             email: customerEmail,
@@ -91,13 +87,45 @@ serve(async (req) => {
               redirectTo: `${session.success_url?.split('?')[0]?.replace('/subscribe', '')}/auth?tab=reset`,
             },
           });
-
-          if (resetError) {
-            logStep("Error sending password setup email", { error: resetError.message });
-          } else {
-            logStep("Password setup email sent", { email: customerEmail });
-          }
+          if (resetError) logStep("Error sending password setup email", { error: resetError.message });
+          else logStep("Password setup email sent");
         }
+      }
+
+      // If it's a subscription checkout, fetch the subscription and record it
+      if (session.mode === "subscription" && session.subscription) {
+        const subId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+        const subscription = await stripe.subscriptions.retrieve(subId);
+        await upsertSubscriptionStatus(supabaseAdmin, subscription, customerEmail);
+      }
+    }
+
+    // Handle subscription lifecycle events
+    if (
+      event.type === "customer.subscription.created" ||
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      const subscription = event.data.object as Stripe.Subscription;
+      
+      // Get customer email from Stripe
+      let customerEmail: string | null = null;
+      if (typeof subscription.customer === "string") {
+        const customer = await stripe.customers.retrieve(subscription.customer);
+        if (!customer.deleted) {
+          customerEmail = customer.email;
+        }
+      }
+
+      if (customerEmail) {
+        await upsertSubscriptionStatus(supabaseAdmin, subscription, customerEmail);
+        logStep("Subscription status updated", { 
+          email: customerEmail, 
+          status: subscription.status,
+          event: event.type,
+        });
+      } else {
+        logStep("Could not resolve customer email for subscription event");
       }
     }
 
@@ -114,3 +142,27 @@ serve(async (req) => {
     });
   }
 });
+
+async function upsertSubscriptionStatus(
+  supabase: ReturnType<typeof createClient>,
+  subscription: Stripe.Subscription,
+  email: string
+) {
+  const { error } = await supabase
+    .from("subscription_status")
+    .upsert(
+      {
+        email: email.toLowerCase(),
+        stripe_customer_id: typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id,
+        stripe_subscription_id: subscription.id,
+        status: subscription.status,
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      },
+      { onConflict: "stripe_subscription_id" }
+    );
+
+  if (error) {
+    console.error("Error upserting subscription_status:", error);
+    throw error;
+  }
+}
