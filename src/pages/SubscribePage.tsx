@@ -1,13 +1,15 @@
 import { Layout } from '@/components/layout/Layout';
 import { BeamsBackground } from '@/components/effects/BeamsBackground';
 import { motion } from 'framer-motion';
-import { Crown, Check, Sparkles, Loader2 } from 'lucide-react';
+import { Crown, Check, Sparkles, Loader2, Tag, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const perks = [
   'Unlimited access to exclusive beat packs',
@@ -21,8 +23,13 @@ const perks = [
 const SubscribePage = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [isLoading, setIsLoading] = useState(false);
+  const [redeemCode, setRedeemCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [codeMessage, setCodeMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, subscription, checkSubscription } = useAuth();
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -30,6 +37,7 @@ const SubscribePage = () => {
         title: "🎉 Welcome to The Pantheon!",
         description: "Your subscription is now active. Enjoy unlimited access!",
       });
+      checkSubscription();
     } else if (searchParams.get('canceled') === 'true') {
       toast({
         title: "Subscription Canceled",
@@ -57,11 +65,21 @@ const SubscribePage = () => {
   const currentPlan = pricing[billingCycle];
 
   const handleSubscribe = async () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in or create an account to subscribe.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
-        body: { priceId: currentPlan.priceId },
+        body: { priceId: currentPlan.priceId, email: user.email },
       });
 
       if (error) throw error;
@@ -80,6 +98,82 @@ const SubscribePage = () => {
       setIsLoading(false);
     }
   };
+
+  const handleRedeemCode = async () => {
+    if (!redeemCode.trim()) return;
+
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to redeem a code.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setIsRedeeming(true);
+    setCodeMessage(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('redeem-lifetime-code', {
+        body: { code: redeemCode.trim() },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setCodeMessage({ text: data.message, type: 'success' });
+        setRedeemCode('');
+        toast({
+          title: "🎉 Code Redeemed!",
+          description: data.message,
+        });
+        await checkSubscription();
+      } else {
+        setCodeMessage({ text: data?.message || 'Invalid code', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Redeem error:', error);
+      setCodeMessage({ text: 'Failed to redeem code. Please try again.', type: 'error' });
+    } finally {
+      setIsRedeeming(false);
+    }
+  };
+
+  // If already subscribed, show status
+  if (subscription.subscribed) {
+    return (
+      <Layout>
+        <BeamsBackground />
+        <section className="relative z-10 container mx-auto px-4 py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-2xl mx-auto text-center"
+          >
+            <Crown className="mx-auto h-16 w-16 text-primary mb-6" />
+            <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-2">
+              You're in The Pantheon
+            </h1>
+            <p className="text-muted-foreground mb-4 text-lg">
+              {subscription.plan === 'lifetime' 
+                ? 'You have lifetime access — enjoy everything, forever.'
+                : `Your ${subscription.plan} plan is active.`}
+            </p>
+            {subscription.subscriptionEnd && (
+              <p className="text-sm text-muted-foreground mb-8">
+                Renews: {new Date(subscription.subscriptionEnd).toLocaleDateString()}
+              </p>
+            )}
+            <Button onClick={() => navigate('/members')} size="lg">
+              Go to Members Area
+            </Button>
+          </motion.div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -178,6 +272,56 @@ const SubscribePage = () => {
             <p className="mt-4 text-sm text-muted-foreground">
               Cancel anytime. No hidden fees.
             </p>
+
+            {/* Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-card/50 px-4 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            {/* Code Redemption */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                <Gift className="h-4 w-4" />
+                <span>Have an access code?</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter code"
+                  value={redeemCode}
+                  onChange={(e) => {
+                    setRedeemCode(e.target.value.toUpperCase());
+                    setCodeMessage(null);
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleRedeemCode()}
+                  className="text-center uppercase tracking-widest font-mono"
+                  maxLength={30}
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={handleRedeemCode}
+                  disabled={isRedeeming || !redeemCode.trim()}
+                >
+                  {isRedeeming ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Tag className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              {codeMessage && (
+                <p className={cn(
+                  "text-sm font-medium",
+                  codeMessage.type === 'success' ? 'text-green-500' : 'text-destructive'
+                )}>
+                  {codeMessage.text}
+                </p>
+              )}
+            </div>
           </div>
         </motion.div>
       </section>
