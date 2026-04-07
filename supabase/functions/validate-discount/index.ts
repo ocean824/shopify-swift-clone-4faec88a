@@ -25,12 +25,12 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { code, cartSubtotal } = await req.json();
+    const { code, cartSubtotal, context } = await req.json();
     if (!code) {
       throw new Error("No discount code provided");
     }
 
-    logStep("Validating code", { code: code.toUpperCase() });
+    logStep("Validating code", { code: code.toUpperCase(), context });
 
     // Look up the discount code
     const { data: discountCode, error: codeError } = await supabaseClient
