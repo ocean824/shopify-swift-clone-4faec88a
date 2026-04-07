@@ -56,6 +56,18 @@ serve(async (req) => {
       });
     }
 
+    // Block subscription-only codes from being used in the cart checkout
+    if (context === 'cart' && (discountCode.grants_pantheon_lifetime || discountCode.applies_to === 'subscription')) {
+      logStep("Code is subscription-only, blocked from cart use");
+      return new Response(JSON.stringify({
+        valid: false,
+        message: "This code is for subscriptions only. Use it on the Subscribe page."
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Check validity dates
     const now = new Date();
     if (discountCode.valid_from && new Date(discountCode.valid_from) > now) {
