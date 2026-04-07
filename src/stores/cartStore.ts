@@ -397,7 +397,8 @@ export const useCartStore = create<CartStore>()(
             },
             body: JSON.stringify({ 
               code, 
-              cartSubtotal: get().discountedSubtotal() 
+              cartSubtotal: get().discountedSubtotal(),
+              context: 'cart',
             }),
           });
           

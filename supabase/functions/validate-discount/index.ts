@@ -25,12 +25,12 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { code, cartSubtotal } = await req.json();
+    const { code, cartSubtotal, context } = await req.json();
     if (!code) {
       throw new Error("No discount code provided");
     }
 
-    logStep("Validating code", { code: code.toUpperCase() });
+    logStep("Validating code", { code: code.toUpperCase(), context });
 
     // Look up the discount code
     const { data: discountCode, error: codeError } = await supabaseClient
@@ -50,6 +50,18 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         valid: false,
         message: "Invalid or expired discount code"
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Block subscription-only codes from being used in the cart checkout
+    if (context === 'cart' && (discountCode.grants_pantheon_lifetime || discountCode.applies_to === 'subscription')) {
+      logStep("Code is subscription-only, blocked from cart use");
+      return new Response(JSON.stringify({
+        valid: false,
+        message: "This code is for subscriptions only. Use it on the Subscribe page."
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
