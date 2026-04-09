@@ -35,13 +35,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <nav className="container mx-auto flex h-16 items-center justify-between px-4">
+      <nav className="container mx-auto flex h-20 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <img 
             src={logo} 
             alt="Sample Society" 
-            className="h-14 w-auto transition-[filter] duration-0 dark:invert" 
+            className="h-16 w-auto transition-[filter] duration-0 dark:invert"
           />
         </Link>
 
