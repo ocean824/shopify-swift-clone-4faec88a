@@ -30,10 +30,12 @@ interface PantheonContent {
 // Members-only kits configuration - add each kit you upload to Shopify here
 interface MembersKit {
   id: string;
-  shopifyProductTitle: string; // Exact title as it appears in Shopify
+  shopifyProductTitle: string;
   displayTitle: string;
-  discountCode: string; // Format: [SHORTENED_NAME]100
+  discountCode: string;
   description: string;
+  externalLink?: string;
+  downloadPath?: string;
 }
 
 const MEMBERS_ONLY_KITS: MembersKit[] = [
