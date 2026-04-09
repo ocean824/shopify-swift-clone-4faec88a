@@ -41,7 +41,7 @@ export function Header() {
           <img 
             src={logo} 
             alt="Sample Society" 
-            className="h-14 w-auto transition-[filter] duration-0 dark:invert" 
+            className="h-12 w-auto transition-[filter] duration-0 dark:invert" 
           />
         </Link>
 
