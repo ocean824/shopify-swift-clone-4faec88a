@@ -30,28 +30,31 @@ interface PantheonContent {
 // Members-only kits configuration - add each kit you upload to Shopify here
 interface MembersKit {
   id: string;
-  shopifyProductTitle: string; // Exact title as it appears in Shopify
+  shopifyProductTitle: string;
   displayTitle: string;
-  discountCode: string; // Format: [SHORTENED_NAME]100
+  discountCode: string;
   description: string;
+  externalLink?: string;
+  downloadPath?: string;
 }
 
 const MEMBERS_ONLY_KITS: MembersKit[] = [
   {
     id: 'pantheon-members-kit-1',
-    shopifyProductTitle: 'Pantheon Members Only Kits', // Update this to match exact Shopify title
+    shopifyProductTitle: 'Pantheon Members Only Kits',
     displayTitle: 'Pantheon Members Only Kits',
     discountCode: 'PANTHEONKITS100',
     description: 'Exclusive samples for Pantheon members',
+    externalLink: 'https://www.dropbox.com/scl/fo/py6d08xszo6cll8j7seor/AJyrUzBKfpy-LASo2ua4R_Y?rlkey=xvvkyux7mn0rnxcyi8plyhl1p&st=6rz6sx8f&dl=0',
   },
-  // Add more kits here as you upload them to Shopify:
-  // {
-  //   id: 'pantheon-kit-2',
-  //   shopifyProductTitle: 'Exact Shopify Product Title',
-  //   displayTitle: 'Display Name',
-  //   discountCode: 'KITNAME100',
-  //   description: 'Description',
-  // },
+  {
+    id: 'music-industry-resource-bundle',
+    shopifyProductTitle: 'Music Industry Resource Bundle',
+    displayTitle: 'Music Industry Resource Bundle',
+    discountCode: '',
+    description: 'Essential resources for navigating the music industry',
+    downloadPath: '/downloads/SAMPLE_SOCIETY_MUSIC_INDUSTRY_RESOURCES_BUNDLE.zip',
+  },
 ];
 
 const MembersPage = () => {
@@ -194,6 +197,22 @@ const MembersPage = () => {
   };
 
   const handleMembersKitDownload = async (kit: MembersKit) => {
+    // If external link, open directly
+    if (kit.externalLink) {
+      window.open(kit.externalLink, '_blank');
+      return;
+    }
+    // If local download path, trigger download
+    if (kit.downloadPath) {
+      const link = document.createElement('a');
+      link.href = kit.downloadPath;
+      link.download = kit.downloadPath.split('/').pop() || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    // Fallback: Shopify checkout flow
     setDownloadingKitId(kit.id);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
@@ -439,11 +458,10 @@ const MembersPage = () => {
                 {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
-                    { type: 'Beats', title: 'Exclusive Beat Pack Vol. 1' },
-                    { type: 'CST', title: 'Premium CST Collection' },
-                    { type: 'VST', title: 'VST Essentials Bundle' },
-                    { type: 'Collab', title: 'Collab Placement Pack' },
-                    { type: 'New', title: 'Bi-Weekly Drops' },
+                    { type: 'VST', title: 'Members Only VSTs' },
+                    { type: 'Discord', title: 'Private Discord Access' },
+                    { type: 'Courses', title: 'Secret Sauce Courses' },
+                    { type: 'NFT', title: 'Members Only NFTs' },
                   ].map((item, index) => (
                     <motion.div
                       key={index}
