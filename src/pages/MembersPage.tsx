@@ -197,6 +197,22 @@ const MembersPage = () => {
   };
 
   const handleMembersKitDownload = async (kit: MembersKit) => {
+    // If external link, open directly
+    if (kit.externalLink) {
+      window.open(kit.externalLink, '_blank');
+      return;
+    }
+    // If local download path, trigger download
+    if (kit.downloadPath) {
+      const link = document.createElement('a');
+      link.href = kit.downloadPath;
+      link.download = kit.downloadPath.split('/').pop() || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    // Fallback: Shopify checkout flow
     setDownloadingKitId(kit.id);
     try {
       const { data, error } = await supabase.functions.invoke('resend-download', {
@@ -442,11 +458,10 @@ const MembersPage = () => {
                 {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
-                    { type: 'Beats', title: 'Exclusive Beat Pack Vol. 1' },
-                    { type: 'CST', title: 'Premium CST Collection' },
-                    { type: 'VST', title: 'VST Essentials Bundle' },
-                    { type: 'Collab', title: 'Collab Placement Pack' },
-                    { type: 'New', title: 'Bi-Weekly Drops' },
+                    { type: 'VST', title: 'Members Only VSTs' },
+                    { type: 'Discord', title: 'Private Discord Access' },
+                    { type: 'Courses', title: 'Secret Sauce Courses' },
+                    { type: 'NFT', title: 'Members Only NFTs' },
                   ].map((item, index) => (
                     <motion.div
                       key={index}
