@@ -455,11 +455,33 @@ const MembersPage = () => {
                   </div>
                 )}
 
+                {/* Discord Access */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card/50 backdrop-blur-sm p-4 rounded-xl border border-primary/30 hover:border-primary transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs text-primary font-medium uppercase tracking-wider">Discord</span>
+                      <h4 className="font-semibold mt-1">Private Discord Access</h4>
+                      <p className="text-sm text-muted-foreground mt-0.5">Join the exclusive Pantheon community</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => window.open('https://discord.gg/eHt74D94px', '_blank')}
+                      className="flex-shrink-0"
+                    >
+                      Join
+                    </Button>
+                  </div>
+                </motion.div>
+
                 {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
                     { type: 'VST', title: 'Members Only VSTs' },
-                    { type: 'Discord', title: 'Private Discord Access' },
                     { type: 'Courses', title: 'Secret Sauce Courses' },
                     { type: 'NFT', title: 'Members Only NFTs' },
                   ].map((item, index) => (
