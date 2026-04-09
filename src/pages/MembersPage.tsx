@@ -39,19 +39,20 @@ interface MembersKit {
 const MEMBERS_ONLY_KITS: MembersKit[] = [
   {
     id: 'pantheon-members-kit-1',
-    shopifyProductTitle: 'Pantheon Members Only Kits', // Update this to match exact Shopify title
+    shopifyProductTitle: 'Pantheon Members Only Kits',
     displayTitle: 'Pantheon Members Only Kits',
     discountCode: 'PANTHEONKITS100',
     description: 'Exclusive samples for Pantheon members',
+    externalLink: 'https://www.dropbox.com/scl/fo/py6d08xszo6cll8j7seor/AJyrUzBKfpy-LASo2ua4R_Y?rlkey=xvvkyux7mn0rnxcyi8plyhl1p&st=6rz6sx8f&dl=0',
   },
-  // Add more kits here as you upload them to Shopify:
-  // {
-  //   id: 'pantheon-kit-2',
-  //   shopifyProductTitle: 'Exact Shopify Product Title',
-  //   displayTitle: 'Display Name',
-  //   discountCode: 'KITNAME100',
-  //   description: 'Description',
-  // },
+  {
+    id: 'music-industry-resource-bundle',
+    shopifyProductTitle: 'Music Industry Resource Bundle',
+    displayTitle: 'Music Industry Resource Bundle',
+    discountCode: '',
+    description: 'Essential resources for navigating the music industry',
+    downloadPath: '/downloads/SAMPLE_SOCIETY_MUSIC_INDUSTRY_RESOURCES_BUNDLE.zip',
+  },
 ];
 
 const MembersPage = () => {
