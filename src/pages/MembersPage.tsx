@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Crown, Download, Calendar, Settings, Loader2, Lock, Package, RefreshCw, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import pantheonHeader from '@/assets/pantheon-header.jpg';
 
 interface Purchase {
   id: string;
@@ -409,10 +410,12 @@ const MembersPage = () => {
 
           {/* Pantheon Content Section */}
           <div>
-            <h2 className="text-2xl font-bold flex items-center gap-2 mb-4">
-              <Crown className="h-6 w-6 text-primary" />
-              Pantheon Exclusive Content
-            </h2>
+            <img
+              src={pantheonHeader}
+              alt="The Pantheon"
+              className="w-full max-w-md mx-auto mb-4 rounded-xl"
+            />
+            <h2 className="sr-only">Pantheon Exclusive Content</h2>
             
             {subscription.subscribed ? (
               <div className="space-y-4">
