@@ -14,10 +14,11 @@ import pantheonHeader from '@/assets/pantheon-header.jpg';
 const perks = [
   'Unlimited access to exclusive beat packs',
   'Members-only sample kits',
-  "CST's & VST's included",
+  "VST's included",
   'Open collab placement pack opportunities',
-  'New product drops bi-weekly',
-  'Full library of releases and bonuses',
+  'Exclusive members only releases',
+  'Courses included',
+  "Early access to NFT's",
 ];
 
 const SubscribePage = () => {
