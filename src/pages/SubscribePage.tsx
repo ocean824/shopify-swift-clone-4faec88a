@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import pantheonHeader from '@/assets/pantheon-header.jpg';
 
 const perks = [
   'Unlimited access to exclusive beat packs',
@@ -180,10 +181,12 @@ const SubscribePage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto text-center"
           >
-            <Crown className="mx-auto h-16 w-16 text-primary mb-6" />
-            <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-2">
-              You're in The Pantheon
-            </h1>
+            <img
+              src={pantheonHeader}
+              alt="The Pantheon"
+              className="mx-auto mb-6 w-full max-w-md rounded-xl"
+            />
+            <h1 className="sr-only">You're in The Pantheon</h1>
             <p className="text-muted-foreground mb-4 text-lg">
               {subscription.plan === 'lifetime'
                 ? 'You have lifetime access — enjoy everything, forever.'
@@ -212,10 +215,12 @@ const SubscribePage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto text-center"
         >
-          <Crown className="mx-auto h-16 w-16 text-primary mb-6" />
-          <h1 className="text-4xl md:text-5xl font-bold uppercase tracking-tight mb-2">
-            The Pantheon
-          </h1>
+          <img
+            src={pantheonHeader}
+            alt="The Pantheon"
+            className="mx-auto mb-6 w-full max-w-md rounded-xl"
+          />
+          <h1 className="sr-only">The Pantheon</h1>
           <p className="text-muted-foreground mb-8 text-lg">
             Unlock unlimited access to our exclusive library
           </p>
