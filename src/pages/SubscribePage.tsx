@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import pantheonHeader from '@/assets/pantheon-header.jpg';
 
 const perks = [
   'Unlimited access to exclusive beat packs',
