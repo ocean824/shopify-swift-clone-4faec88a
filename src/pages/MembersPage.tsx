@@ -410,11 +410,15 @@ const MembersPage = () => {
 
           {/* Pantheon Content Section */}
           <div>
-            <img
-              src={pantheonHeader}
-              alt="The Pantheon"
-              className="w-full max-w-md mx-auto mb-4 rounded-xl"
-            />
+            <div className="relative w-full h-[140px] md:h-[180px] lg:h-[220px] overflow-hidden rounded-xl mb-6">
+              <img
+                src={pantheonHeader}
+                alt="The Pantheon"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: '50% 50%' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+            </div>
             <h2 className="sr-only">Pantheon Exclusive Content</h2>
             
             {subscription.subscribed ? (

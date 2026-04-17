@@ -175,17 +175,21 @@ const SubscribePage = () => {
     return (
       <Layout>
         <BeamsBackground />
+        <div className="relative z-10 w-full h-[180px] md:h-[240px] lg:h-[300px] overflow-hidden bg-background">
+          <img
+            src={pantheonHeader}
+            alt="The Pantheon"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: '50% 50%' }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        </div>
         <section className="relative z-10 container mx-auto px-4 py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto text-center"
           >
-            <img
-              src={pantheonHeader}
-              alt="The Pantheon"
-              className="mx-auto mb-6 w-full max-w-md rounded-xl"
-            />
             <h1 className="sr-only">You're in The Pantheon</h1>
             <p className="text-muted-foreground mb-4 text-lg">
               {subscription.plan === 'lifetime'
@@ -209,17 +213,21 @@ const SubscribePage = () => {
   return (
     <Layout>
       <BeamsBackground />
+      <div className="relative z-10 w-full h-[180px] md:h-[240px] lg:h-[300px] overflow-hidden bg-background">
+        <img
+          src={pantheonHeader}
+          alt="The Pantheon"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: '50% 50%' }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+      </div>
       <section className="relative z-10 container mx-auto px-4 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto text-center"
         >
-          <img
-            src={pantheonHeader}
-            alt="The Pantheon"
-            className="mx-auto mb-6 w-full max-w-md rounded-xl"
-          />
           <h1 className="sr-only">The Pantheon</h1>
           <p className="text-muted-foreground mb-8 text-lg">
             Unlock unlimited access to our exclusive library
