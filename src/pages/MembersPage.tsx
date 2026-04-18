@@ -488,7 +488,7 @@ const MembersPage = () => {
                 {/* Coming Soon items */}
                 <div className="grid gap-4 md:grid-cols-2">
                   {[
-                    { type: 'VST', title: 'Members Only VSTs' },
+                    { type: 'VST', title: 'Early Access VSTs' },
                     { type: 'Courses', title: 'Secret Sauce Courses' },
                     { type: 'NFT', title: 'Members Only NFTs' },
                   ].map((item, index) => (
