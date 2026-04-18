@@ -12,13 +12,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import pantheonHeader from '@/assets/pantheon-header.jpg';
 
 const perks = [
-  'Unlimited access to exclusive beat packs',
-  'Members-only sample kits',
-  "VST's included",
-  'Open collab placement pack opportunities',
-  'Exclusive members only releases',
-  'Courses included',
-  "Early access to NFT's",
+  'Members Only access to exclusive sample kits & beat packs',
+  "Members Only early access to VST's",
+  'Members Only access to secret sauce courses & resources',
+  'Members Only collab & placement pack opportunities',
+  'Members Only exclusive releases',
+  "Members Only early access to NFT's",
 ];
 
 const SubscribePage = () => {
